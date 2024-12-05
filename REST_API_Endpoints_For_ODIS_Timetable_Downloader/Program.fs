@@ -19,6 +19,8 @@ open Giraffe
 open Helpers
 open RestApiThothJson.ThothJson
 
+//*.fsproj !!!! See below.
+
 module Program =
 
     [<EntryPoint>]
