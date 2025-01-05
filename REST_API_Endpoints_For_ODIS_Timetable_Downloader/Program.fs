@@ -43,7 +43,7 @@ module Program =
                      ctx.Response.WriteAsync("Unauthorized: Invalid API Key") |> ignore
                      System.Threading.Tasks.Task.FromResult<HttpContext option>(None) // API key is missing or invalid
 
-        let apiRouter = //SATURN
+        let apiRouter = //SATURN //http://kodis.somee.com
 
             router
                 { 

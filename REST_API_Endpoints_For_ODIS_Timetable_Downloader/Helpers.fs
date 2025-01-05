@@ -2,36 +2,10 @@
 
 open System
 
-[<Struct>]
-type internal PyramidOfDoom = PyramidOfDoom with    
-    member _.Bind((optionExpr, err), nextFunc) =
-        match optionExpr with
-        | Some value -> nextFunc value 
-        | _          -> err  
-    member _.Return x : 'a = x   
-    member _.ReturnFrom x : 'a = x 
-    member _.TryFinally(body, compensation) =
-        try body()
-        finally compensation()
-    member _.Zero () = ()
-    member _.Using(resource, binder) =
-        use r = resource
-        binder r
-
-[<Struct>]
-type internal MyBuilder = MyBuilder with    
-     member _.Bind(condition, nextFunc) =
-         match fst condition with
-         | false -> snd condition
-         | true  -> nextFunc()  
-     member _.Return x = x
-     member _.Using x = x
-
+open MyFsToolkit.Builders
 
 [<RequireQualifiedAccess>]
-module Option =       
-
-    let internal pyramidOfHell = MyBuilder
+module Option =      
 
     let internal ofNull (value : 'nullableValue) =
 
