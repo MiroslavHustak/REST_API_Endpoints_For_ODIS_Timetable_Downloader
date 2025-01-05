@@ -34,4 +34,3 @@ module Option =
         
                 return Some value
             }
-
