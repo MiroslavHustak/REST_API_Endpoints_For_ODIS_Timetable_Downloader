@@ -39,30 +39,34 @@ module Result =
         |> List.choose (fun item -> item |> Result.toOption)
         |> List.length
         |> function   
-            | 0 -> 
-                 let err = 
-                     aListOfResults 
-                     |> List.map
-                         (fun item ->
-                                    match item with
-                                    | Ok _      -> String.Empty
-                                    | Error err -> err
-                         )
-                         |> List.tryHead //One exception or None is enough for the calculation to fail
-                         |> function
-                             | Some value -> value
-                             | None       -> String.Empty
-                 Error err
-            | _ ->
-                 let okList = 
-                     aListOfResults 
-                     |> List.map
-                         (fun item -> 
-                                    match item with
-                                    | Ok value -> value
-                                    | _        -> String.Empty 
-                         )   
-                 Ok okList 
+            | 0
+                -> 
+                let err = 
+                    aListOfResults 
+                    |> List.map
+                        (fun item
+                            ->
+                            match item with
+                            | Ok _      -> String.Empty
+                            | Error err -> err
+                        )
+                        |> List.tryHead //One exception or None is enough for the calculation to fail
+                        |> function
+                            | Some value -> value
+                            | None       -> String.Empty
+                Error err
+            | _
+                ->
+                let okList = 
+                    aListOfResults 
+                    |> List.map
+                        (fun item
+                            -> 
+                            match item with
+                            | Ok value -> value
+                            | _        -> String.Empty 
+                        )   
+                Ok okList 
 
 
 [<RequireQualifiedAccess>]
