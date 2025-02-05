@@ -19,6 +19,11 @@ open Giraffe
 open Helpers
 open RestApiThothJson.Handlers
 
+// REST API created with -> SATURN and GIRAFFE
+// Data format           -> JSON
+// Client library        -> FsHttp 
+// (De)Serialization     -> Thoth.Json(.Net)
+
 //*.fsproj !!!! See below.
 
 module Program =

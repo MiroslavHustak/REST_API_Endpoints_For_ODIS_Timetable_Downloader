@@ -7,10 +7,10 @@ open Thoth.Json
 open Thoth.Json.Net
 #endif
 
-// REST API created with SATURN and GIRAFFE
-// Data format       -> JSON
-// Client Library    -> FsHttp 
-// (De)Serialization -> Thoth.Json
+// REST API created with -> SATURN and GIRAFFE
+// Data format           -> JSON
+// Client library        -> FsHttp 
+// (De)Serialization     -> Thoth.Json(.Net)
 
 module Handlers =
 
