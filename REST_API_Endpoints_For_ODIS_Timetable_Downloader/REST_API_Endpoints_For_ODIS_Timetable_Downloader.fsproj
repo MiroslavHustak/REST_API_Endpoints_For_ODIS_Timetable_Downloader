@@ -9,6 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Include="Instructions.txt" />
 		<Content Include="Education.txt" />
 		<Compile Include="MyFsToolkit\CEBuilders.fs" />
 		<Compile Include="MyFsToolkit\ErrorHandlers.fs" />
