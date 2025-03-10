@@ -28,7 +28,8 @@ module Handlers =
     open MyFsToolkit
     open MyFsToolkit.Builders    
 
-    let [<Literal>] internal jsonEmpty = """{ "list": [] }"""
+    let [<Literal>] private jsonEmpty = """{ "list": [] }"""
+
     
     // ************** GET ******************* 
            
