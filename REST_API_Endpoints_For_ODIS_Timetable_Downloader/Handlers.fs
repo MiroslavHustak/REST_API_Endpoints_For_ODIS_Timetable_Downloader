@@ -34,78 +34,60 @@ module Handlers =
     // ************** GET ******************* 
            
     let internal getHandler path : HttpHandler =  //GIRAFFE       
-           
-           let getJsonString path =
+        
+        let getJsonString path =
 
-               try
-                   pyramidOfDoom 
-                       {
-                           let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                           let! filepath = filepath, Error (sprintf "Chyba při čtení cesty k souboru: %s" path)
+            try
+                pyramidOfDoom
+                    {
+                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                        let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
 
-                           let fInfodat : FileInfo = FileInfo filepath
-                           let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
-                        
-                           use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) 
-                           let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
-                           
-                           let reader = new StreamReader(fs) //use nelze pouzit v dusledku asyn pouzivani reader nize
-                           let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
-                       
-                           return Ok reader 
-                       }
+                        let fInfodat : FileInfo = FileInfo filepath
+                        let! _ =  fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
+                 
+                        use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) 
+                        let! _ = fs |> Option.ofNull, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath)                        
+                    
+                        use reader = new StreamReader(fs) //For large files, StreamReader may offer better performance and memory efficiency
+                        let! _ = reader |> Option.ofNull, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath) 
+                
+                        let jsonString = reader.ReadToEnd() //async varianta nefungovala, see commented out code below TODO zjistit cemu
+                        let! jsonString = jsonString |> Option.ofNullEmpty, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath)                      
+                                  
+                        return Ok jsonString //Thoth output is of Result type 
+                    }
+            with
+            | ex -> Error (string ex.Message)
 
-                   |> Result.map 
-                       (fun reader 
-                           -> 
-                           async
-                               {
-                                   //manualni disposal jednak cancellationHandler, jednak reader
-                                   let! cancellationHandler = Async.OnCancel(fun () -> reader.Dispose())
-                                   let! content = reader.ReadToEndAsync() |> Async.AwaitTask
-                                   reader.Dispose()
-                                   cancellationHandler.Dispose()
+        fun (next : HttpFunc) (ctx : HttpContext) 
+            -> 
+            async
+                {       
+                    try
+                        let response param = 
+                            {
+                                GetLinks = fst param 
+                                Message = snd param 
+                            }
 
-                                   return content
-                               }
-                       ) 
+                        let response = 
+                            match getJsonString path with
+                            | Ok jsonString -> response (jsonString, "Success") 
+                            | Error err     -> response (String.Empty, err)  
 
-               with
-               | ex -> Error (string ex.Message)
+                        let responseJson = Encode.toString 2 (encoderGet response) 
+                        ctx.Response.ContentType <- "application/json"
 
-           fun (next: HttpFunc) (ctx: HttpContext) -> 
+                        return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE
 
-               async
-                   {       
-                       let response param = 
-                           {
-                               GetLinks = fst param 
-                               Message = snd param 
-                           }
-                       
-                       match! async { return getJsonString path } with
-                       | Ok jsonStringAsync
-                           -> 
-                           let! jsonString = jsonStringAsync 
-                           let jsonString = 
-                               jsonString 
-                               |> Option.ofNull 
-                               |> Option.defaultValue jsonEmpty //|> function Some value -> value | None -> String.Empty
-                           let response = response (jsonString, "Success") 
-                           let responseJson = Encode.toString 2 (encoderGet response) 
-                           ctx.Response.ContentType <- "application/json"
-
-                           return! text responseJson next ctx |> Async.AwaitTask //GIRAFFE
-
-                       | Error err    
-                           -> 
-                           let response = response (jsonEmpty, err)  
-                           let responseJson = Encode.toString 2 (encoderGet response) 
-                           ctx.Response.ContentType <- "application/json"
-
-                           return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE  
-                   }
-               |> Async.StartImmediateAsTask 
+                    with
+                    | ex 
+                        -> 
+                        ctx.Response.StatusCode <- 400
+                        return! text (sprintf "Error: %s" ex.Message) next ctx  |> Async.AwaitTask  //GIRAFFE   
+                }
+                |> Async.StartImmediateAsTask
    
                 
     // ************** PUT ******************* 
@@ -181,62 +163,86 @@ module Handlers =
             |> Async.StartImmediateAsTask 
 
 
-//*************************** Sync variants ********************************************************
-
 (*
-// ************** GET ******************* 
+// ************** GET async variant TODO zjistit, cemu nefunguje ******************* 
            
-    let internal getHandler path : HttpHandler =  //GIRAFFE       
-        
-        let getJsonString path =
+   let internal getHandler path : HttpHandler =  //GIRAFFE       
+           
+           let getJsonString path =
 
-            try
-                pyramidOfDoom
-                    {
-                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                        let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
+               try
+                   pyramidOfDoom 
+                       {
+                           let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                           let! filepath = filepath, Error (sprintf "Chyba při čtení cesty k souboru: %s" path)
 
-                        let fInfodat : FileInfo = FileInfo filepath
-                        let! _ =  fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
-                 
-                        use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) 
-                        let! _ = fs |> Option.ofNull, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath)                        
-                    
-                        use reader = new StreamReader(fs) //For large files, StreamReader may offer better performance and memory efficiency
-                        let! _ = reader |> Option.ofNull, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath) 
-                
-                        let jsonString = reader.ReadToEnd()
-                        let! jsonString = jsonString |> Option.ofNullEmpty, Error (sprintf "%s%s" "Chyba při čtení dat ze souboru " filepath)                      
-                                  
-                        return Ok jsonString //Thoth output is of Result type 
-                    }
-            with
-            | ex -> Error (string ex.Message)
+                           let fInfodat : FileInfo = FileInfo filepath
+                           let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
+                        
+                           use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read) 
+                           let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
+                           
+                           let reader = new StreamReader(fs) //use nelze pouzit v dusledku async pouzivani reader nize
+                           let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
+                       
+                           return Ok reader 
+                       }
 
-        fun (next : HttpFunc) (ctx : HttpContext) 
-            -> 
-            async
-                {       
-                    let response param = 
-                        {
-                            GetLinks = fst param 
-                            Message = snd param 
-                        }
+                   |> Result.map 
+                       (fun reader 
+                           -> 
+                           let jsonStringAsync = 
+                               async
+                                   {
+                                       //manualni disposal jednak cancellationHandler, jednak reader
+                                       use! cancellationHandler = Async.OnCancel(fun () -> reader.Dispose())
+                                       let! content = reader.ReadToEndAsync() |> Async.AwaitTask
 
-                    let response = 
-                        match getJsonString path with
-                        | Ok jsonString -> response (jsonString, "Success") 
-                        | Error err     -> response (String.Empty, err)  
+                                       return content
+                                   } 
+                                   
+                           reader.Dispose() 
+                           jsonStringAsync
+                       ) 
 
-                    let responseJson = Encode.toString 2 (encoderGet response) 
-                    ctx.Response.ContentType <- "application/json"
+               with
+               | ex -> Error (string ex.Message)
 
-                    return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE
-                }
-                |> Async.StartImmediateAsTask 
+           fun (next: HttpFunc) (ctx: HttpContext) -> 
+
+               async
+                   {       
+                       let response param = 
+                           {
+                               GetLinks = fst param 
+                               Message = snd param 
+                           }
+                       match getJsonString path with
+                       | Ok jsonStringAsync
+                           -> 
+                           let! jsonString = jsonStringAsync
+                           let jsonString = 
+                               jsonString 
+                               |> Option.ofNull 
+                               |> Option.defaultValue jsonEmpty //|> function Some value -> value | None -> String.Empty
+                           let response = response (jsonString, "Success") 
+                           let responseJson = Encode.toString 2 (encoderGet response) 
+                           ctx.Response.ContentType <- "application/json"
+
+                           return! text responseJson next ctx |> Async.AwaitTask //GIRAFFE
+
+                       | Error err    
+                           -> 
+                           let response = response (jsonEmpty, err)  
+                           let responseJson = Encode.toString 2 (encoderGet response) 
+                           ctx.Response.ContentType <- "application/json"
+
+                           return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE  
+                   }
+               |> Async.StartImmediateAsTask 
    
                 
-    // ************** PUT ******************* 
+    // ************** PUT sync variant ******************* 
    
     let internal putHandler path : HttpHandler =   //GIRAFFE
               
