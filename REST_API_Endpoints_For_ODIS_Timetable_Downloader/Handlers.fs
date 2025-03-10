@@ -160,9 +160,10 @@ module Handlers =
                                 { Message1 = "Successfully updated"; Message2 = String.Empty }
                                 |> encoderPut
                                 |> Encode.toString 2
+
                             ctx.Response.ContentType <- "application/json" 
     
-                            return! text responseJson next ctx  |> Async.AwaitTask  //GIRAFFE
+                            return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE
 
                         | Error err
                             ->   
@@ -170,6 +171,7 @@ module Handlers =
                                 { Message1 = String.Empty; Message2 = err }
                                 |> encoderPut
                                 |> Encode.toString 2
+
                             ctx.Response.ContentType <- "application/json"
                             ctx.Response.StatusCode <- 404
 
@@ -186,9 +188,9 @@ module Handlers =
 
 (*
 
-/ ************** GET sync variant ******************* 
+    // ************** GET sync variant ******************* 
 
-let internal getHandler path : HttpHandler =  //GIRAFFE       
+    let internal getHandler path : HttpHandler =  //GIRAFFE       
         
         let getJsonString path =
 
@@ -243,6 +245,7 @@ let internal getHandler path : HttpHandler =  //GIRAFFE
                         return! text (sprintf "Error: %s" ex.Message) next ctx  |> Async.AwaitTask  //GIRAFFE   
                 }
                 |> Async.StartImmediateAsTask  
+
                 
     // ************** PUT sync variant ******************* 
    
