@@ -132,8 +132,10 @@ module Handlers =
                             async
                                 {
                                     let! cancellationHandler = Async.OnCancel(fun () -> writer.Dispose()) //radeji takto, nespoleham na use!
+
                                     do! writer.WriteAsync(jsonString) |> Async.AwaitTask
                                     do! writer.DisposeAsync().AsTask() |> Async.AwaitTask
+                                    
                                     cancellationHandler.Dispose()
                                 }
                         ) 
