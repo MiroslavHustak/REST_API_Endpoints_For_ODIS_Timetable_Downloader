@@ -134,7 +134,7 @@ module Handlers =
                                     do! writer.WriteAsync jsonString |> Async.AwaitTask
                                     do! writer.DisposeAsync().AsTask() |> Async.AwaitTask //proper cleaning
 
-                                    //if async is cancelled for whatever reason, then the writer is disposed of
+                                    //if async is cancelled for whatever reason, then the writer is disposed of 
                                     let! cancellationHandler = Async.OnCancel <| fun () -> writer.Dispose()                                
                                     cancellationHandler.Dispose()
                                 }
