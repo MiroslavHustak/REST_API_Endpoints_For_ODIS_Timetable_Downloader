@@ -73,7 +73,7 @@ module Handlers =
                         match getJsonString path with
                         | Ok reader
                             -> 
-                            let! cancellationHandler = Async.OnCancel(fun () -> reader.Dispose())
+                            let! cancellationHandler = Async.OnCancel <| fun () -> reader.Dispose()
 
                             let! jsonString = 
                                 reader.ReadToEndAsync()
