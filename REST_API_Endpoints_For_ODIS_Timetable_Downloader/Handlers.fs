@@ -83,13 +83,9 @@ module Handlers =
                                 jsonString 
                                 |> Option.ofNull 
                                 |> Option.defaultValue jsonEmpty //|> function Some value -> value | None -> String.Empty
-
-                            let responseJson = 
-                                (jsonString, "Success") 
-                                |> response 
-                                |> encoderGet
-                                |> Encode.toString 2  
-                                
+                            
+                            let responseJson = response >> encoderGet >> Encode.toString 2 <| (jsonString, "Success")
+                                                                                     
                             ctx.Response.ContentType <- "application/json"
 
                             cancellationHandler.Dispose()
@@ -99,11 +95,7 @@ module Handlers =
 
                         | Error err    
                             -> 
-                            let responseJson = 
-                                (jsonEmpty, err)
-                                |> response 
-                                |> encoderGet
-                                |> Encode.toString 2  
+                            let responseJson = response >> encoderGet >> Encode.toString 2 <| (jsonEmpty, err) 
 
                             ctx.Response.ContentType <- "application/json"
 
@@ -164,10 +156,7 @@ module Handlers =
                             ->
                             do! asyncWriter
 
-                            let responseJson = 
-                                { Message1 = "Successfully updated"; Message2 = String.Empty }
-                                |> encoderPut
-                                |> Encode.toString 2
+                            let responseJson = encoderPut >> Encode.toString 2 <| { Message1 = "Successfully updated"; Message2 = String.Empty }
 
                             ctx.Response.ContentType <- "application/json" 
     
@@ -175,10 +164,7 @@ module Handlers =
 
                         | Error err
                             ->   
-                            let responseJson = 
-                                { Message1 = String.Empty; Message2 = err }
-                                |> encoderPut
-                                |> Encode.toString 2
+                            let responseJson = encoderPut >> Encode.toString 2 <| { Message1 = String.Empty; Message2 = err }
 
                             ctx.Response.ContentType <- "application/json"
                             ctx.Response.StatusCode <- 404
