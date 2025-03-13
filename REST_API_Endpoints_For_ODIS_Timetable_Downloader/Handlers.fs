@@ -36,7 +36,7 @@ module Handlers =
            
     let internal getHandler path : HttpHandler =  //GIRAFFE       
         
-        let getJsonString path =
+        let streamReader path =
 
             try
                 pyramidOfDoom 
@@ -70,7 +70,7 @@ module Handlers =
                                 Message = snd param 
                             }
                                            
-                        match getJsonString path with
+                        match streamReader path with
                         | Ok reader
                             -> 
                             let! cancellationHandler = Async.OnCancel <| fun () -> reader.Dispose()
