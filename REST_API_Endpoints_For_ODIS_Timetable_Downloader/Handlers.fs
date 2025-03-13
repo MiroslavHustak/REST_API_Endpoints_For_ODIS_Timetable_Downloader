@@ -31,6 +31,8 @@ module Handlers =
 
     let [<Literal>] private jsonEmpty = """{ "list": [] }"""
 
+    let [<Literal>] private identation = 2
+
     
     // ************** GET ******************* 
            
@@ -82,9 +84,9 @@ module Handlers =
                             let jsonString = 
                                 jsonString 
                                 |> Option.ofNull 
-                                |> Option.defaultValue jsonEmpty //|> function Some value -> value | None -> String.Empty
+                                |> Option.defaultValue jsonEmpty 
                             
-                            let responseJson = response >> encoderGet >> Encode.toString 2 <| (jsonString, "Success")
+                            let responseJson = response >> encoderGet >> Encode.toString identation <| (jsonString, "Success")
                                                                                      
                             ctx.Response.ContentType <- "application/json"
 
@@ -95,7 +97,7 @@ module Handlers =
 
                         | Error err    
                             -> 
-                            let responseJson = response >> encoderGet >> Encode.toString 2 <| (jsonEmpty, err) 
+                            let responseJson = response >> encoderGet >> Encode.toString identation <| (jsonEmpty, err) 
 
                             ctx.Response.ContentType <- "application/json"
 
@@ -156,7 +158,7 @@ module Handlers =
                             ->
                             do! asyncWriter
 
-                            let responseJson = encoderPut >> Encode.toString 2 <| { Message1 = "Successfully updated"; Message2 = String.Empty }
+                            let responseJson = encoderPut >> Encode.toString identation <| { Message1 = "Successfully updated"; Message2 = String.Empty }
 
                             ctx.Response.ContentType <- "application/json" 
     
@@ -164,7 +166,7 @@ module Handlers =
 
                         | Error err
                             ->   
-                            let responseJson = encoderPut >> Encode.toString 2 <| { Message1 = String.Empty; Message2 = err }
+                            let responseJson = encoderPut >> Encode.toString identation <| { Message1 = String.Empty; Message2 = err }
 
                             ctx.Response.ContentType <- "application/json"
                             ctx.Response.StatusCode <- 404
