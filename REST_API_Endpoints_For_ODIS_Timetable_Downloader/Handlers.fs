@@ -84,8 +84,12 @@ module Handlers =
                                 |> Option.ofNull 
                                 |> Option.defaultValue jsonEmpty //|> function Some value -> value | None -> String.Empty
 
-                            let response = response (jsonString, "Success") 
-                            let responseJson = Encode.toString 2 (encoderGet response) 
+                            let responseJson = 
+                                (jsonString, "Success") 
+                                |> response 
+                                |> encoderGet
+                                |> Encode.toString 2  
+                                
                             ctx.Response.ContentType <- "application/json"
 
                             cancellationHandler.Dispose()
@@ -95,8 +99,12 @@ module Handlers =
 
                         | Error err    
                             -> 
-                            let response = response (jsonEmpty, err)  
-                            let responseJson = Encode.toString 2 (encoderGet response) 
+                            let responseJson = 
+                                (jsonEmpty, err)
+                                |> response 
+                                |> encoderGet
+                                |> Encode.toString 2  
+
                             ctx.Response.ContentType <- "application/json"
 
                             return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE  
