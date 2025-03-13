@@ -47,7 +47,7 @@ module Handlers =
                         let fInfodat : FileInfo = FileInfo filepath
                         let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
                      
-                        use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read) 
+                        use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) 
                         let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
                         
                         let reader = new StreamReader(fs) //use nelze pouzit v dusledku async pouzivani reader nize
