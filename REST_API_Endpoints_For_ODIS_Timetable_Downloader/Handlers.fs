@@ -122,7 +122,7 @@ module Handlers =
    
     let internal putHandler path : HttpHandler =   //GIRAFFE
               
-        let saveJsonString (jsonString : string) path =
+        let prepareJsonAsyncWrite (jsonString : string) path = // it only prepares an asynchronous operation that writes the json string
             
                 try  
                     pyramidOfDoom
@@ -156,7 +156,7 @@ module Handlers =
                         use reader = new StreamReader(ctx.Request.Body)
                         let! body = reader.ReadToEndAsync() |> Async.AwaitTask 
                        
-                        match saveJsonString body path with
+                        match prepareJsonAsyncWrite body path with
                         | Ok asyncWriter     
                             ->
                             do! asyncWriter
