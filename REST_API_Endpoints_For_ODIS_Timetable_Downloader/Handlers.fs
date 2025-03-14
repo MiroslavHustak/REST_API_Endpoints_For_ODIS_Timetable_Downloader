@@ -38,7 +38,7 @@ module Handlers =
            
     let internal getHandler path : HttpHandler =  //GIRAFFE       
         
-        let streamReader path =
+        let getJsonStringAsync path =
 
             try
                 pyramidOfDoom 
@@ -86,7 +86,7 @@ module Handlers =
                                 Message = snd param 
                             }
                                            
-                        match streamReader path with
+                        match getJsonStringAsync path with
                         | Ok jsonStringAsync
                             -> 
                             let! jsonString = jsonStringAsync
