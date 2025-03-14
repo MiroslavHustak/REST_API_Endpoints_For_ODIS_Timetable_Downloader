@@ -134,7 +134,8 @@ module Handlers =
                             let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
                                                                           
                             return Ok writer
-                        }                  
+                        }         
+                        
                     |> Result.map 
                         (fun writer 
                             -> 
