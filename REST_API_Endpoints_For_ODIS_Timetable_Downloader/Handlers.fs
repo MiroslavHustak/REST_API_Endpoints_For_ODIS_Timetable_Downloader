@@ -33,7 +33,7 @@ module Handlers =
 
     let [<Literal>] private identation = 2
 
-    
+        
     // ************** GET ******************* 
            
     let internal getHandler path : HttpHandler =  //GIRAFFE       
@@ -49,14 +49,28 @@ module Handlers =
                         let fInfodat : FileInfo = FileInfo filepath
                         let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
                      
-                        use fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) 
+                        let fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) //nelze use
                         let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
                         
                         let reader = new StreamReader(fs) //use nelze pouzit v dusledku async pouzivani reader nize
                         let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
                     
-                        return Ok reader 
+                        return Ok (reader, fs)
                     }
+
+                |> Result.map 
+                    (fun (reader, fs) 
+                        -> 
+                        async
+                            { 
+                                let! json = reader.ReadToEndAsync() |> Async.AwaitTask
+                                
+                                reader.Dispose()
+                                do! fs.DisposeAsync().AsTask() |> Async.AwaitTask
+
+                                return json 
+                            }
+                    ) 
                 
             with
             | ex -> Error (string ex.Message)
@@ -73,14 +87,10 @@ module Handlers =
                             }
                                            
                         match streamReader path with
-                        | Ok reader
+                        | Ok jsonStringAsync
                             -> 
-                            let! cancellationHandler = Async.OnCancel <| fun () -> reader.Dispose()
-
-                            let! jsonString = 
-                                reader.ReadToEndAsync()
-                                |> Async.AwaitTask
-
+                            let! jsonString = jsonStringAsync
+                       
                             let jsonString = 
                                 jsonString 
                                 |> Option.ofNull 
@@ -89,10 +99,7 @@ module Handlers =
                             let responseJson = response >> encoderGet >> Encode.toString identation <| (jsonString, "Success")
                                                                                      
                             ctx.Response.ContentType <- "application/json"
-
-                            cancellationHandler.Dispose()
-                            reader.Dispose()
-
+                                                      
                             return! text responseJson next ctx |> Async.AwaitTask //GIRAFFE
 
                         | Error err    
@@ -134,11 +141,7 @@ module Handlers =
                             async
                                 {
                                     do! writer.WriteAsync jsonString |> Async.AwaitTask
-                                    do! writer.DisposeAsync().AsTask() |> Async.AwaitTask //proper cleaning
-
-                                    //if async is cancelled for whatever reason, then the writer is disposed of 
-                                    let! cancellationHandler = Async.OnCancel <| fun () -> writer.Dispose()                                
-                                    cancellationHandler.Dispose()
+                                    do! writer.DisposeAsync().AsTask() |> Async.AwaitTask 
                                 }
                         ) 
                        
