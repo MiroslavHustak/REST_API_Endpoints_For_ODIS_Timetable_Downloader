@@ -113,7 +113,7 @@ module Handlers =
                     | ex
                         ->
                         ctx.Response.StatusCode <- 400
-                        return! text (sprintf "Error: %s" ex.Message) next ctx  |> Async.AwaitTask  //GIRAFFE  
+                        return! text (sprintf "Error: %s" ex.Message) next ctx |> Async.AwaitTask  //GIRAFFE  
                 }
             |> Async.StartImmediateAsTask 
    
