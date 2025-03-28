@@ -75,8 +75,8 @@ module Handlers =
             with
             | ex -> Error (string ex.Message)
 
-        fun (next : HttpFunc) (ctx : HttpContext) -> 
-
+        fun (next : HttpFunc) (ctx : HttpContext)
+            -> 
             async
                 {      
                     try
@@ -142,7 +142,7 @@ module Handlers =
                             async
                                 {
                                     do! writer.WriteAsync jsonString |> Async.AwaitTask
-                                    do! writer.DisposeAsync().AsTask() |> Async.AwaitTask 
+                                    return! writer.DisposeAsync().AsTask() |> Async.AwaitTask 
                                 }
                         ) 
                        
