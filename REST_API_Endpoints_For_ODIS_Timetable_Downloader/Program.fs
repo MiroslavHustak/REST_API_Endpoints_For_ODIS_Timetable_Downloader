@@ -36,7 +36,7 @@ module Program =
         let pathCanopy = "CanopyResults/canopy_results.json"
         let pathJsonLinks = "CanopyResults/jsonLinks_results.json"
 
-        let validateApiKey (next: HttpFunc) (ctx: HttpContext) =  //GIRAFFE
+        let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
                      
             match ctx.Request.Headers.TryGetValue("X-API-KEY") with
             | true, key 

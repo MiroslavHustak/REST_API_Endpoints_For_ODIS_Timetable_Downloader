@@ -301,3 +301,64 @@ module Handlers =
                 }   
             |> Async.StartImmediateAsTask 
 *)
+(*
+    //educational code
+    let internal getHandler1 path : HttpHandler =  //GIRAFFE       
+    
+        let getJsonStringAsync path =
+
+            try
+                pyramidOfDoom 
+                    {
+                        // Some code                
+                        return Ok (reader, fs)
+                    }
+
+                |> function
+                    | Ok (reader, fs) 
+                        ->
+                        async
+                            { 
+                                // Some async code
+                                return json 
+                            }
+                        |> Ok
+                       
+                    | Error err -> Error err
+            
+            with
+            | ex -> Error (string ex.Message)
+
+        fun (next : HttpFunc) (ctx : HttpContext)
+            -> 
+            async
+                {      
+                    try
+                        // Some code
+                        match getJsonStringAsync path with
+                        | Ok jsonStringAsync
+                            -> 
+                            let! jsonString = jsonStringAsync
+                   
+                            let jsonString = 
+                                jsonString 
+                                |> Option.ofNull 
+                                |> function
+                                    | Some value -> value
+                                    | None       -> jsonEmpty 
+                        
+                            // Some async code
+                            return! text responseJson next ctx |> Async.AwaitTask //GIRAFFE
+
+                        | Error err    
+                            -> 
+                            // Some async code
+                            return! text responseJson next ctx |> Async.AwaitTask  //GIRAFFE  
+                    with
+                    | ex
+                        ->
+                        ctx.Response.StatusCode <- 400
+                        return! text (sprintf "Error: %s" ex.Message) next ctx |> Async.AwaitTask  //GIRAFFE  
+                }
+            |> Async.StartImmediateAsTask 
+*)
