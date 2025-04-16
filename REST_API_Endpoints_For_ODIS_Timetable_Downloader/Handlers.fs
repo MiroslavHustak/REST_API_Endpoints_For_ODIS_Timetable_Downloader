@@ -124,30 +124,30 @@ module Handlers =
               
         let prepareJsonAsyncWrite (jsonString : string) path = // it only prepares an asynchronous operation that writes the json string
             
-                try  
-                    pyramidOfDoom
-                        {
-                            let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                            let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
+            try  
+                pyramidOfDoom
+                    {
+                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                        let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
                                                       
-                            let writer = new StreamWriter(filepath, false)                
-                            let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
+                        let writer = new StreamWriter(filepath, false)                
+                        let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
                                                                           
-                            return Ok writer
-                        }         
+                        return Ok writer
+                    }         
                         
-                    |> Result.map 
-                        (fun writer 
-                            -> 
-                            async
-                                {
-                                    do! writer.WriteAsync jsonString |> Async.AwaitTask
-                                    return! writer.DisposeAsync().AsTask() |> Async.AwaitTask 
-                                }
-                        ) 
+                |> Result.map 
+                    (fun writer 
+                        -> 
+                        async
+                            {
+                                do! writer.WriteAsync jsonString |> Async.AwaitTask
+                                return! writer.DisposeAsync().AsTask() |> Async.AwaitTask 
+                            }
+                    ) 
                        
-                with
-                | ex -> Error (string ex.Message)
+            with
+            | ex -> Error (string ex.Message)
                        
         fun (next : HttpFunc) (ctx : HttpContext)   //GIRAFFE
             ->

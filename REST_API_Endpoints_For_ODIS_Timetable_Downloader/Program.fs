@@ -72,6 +72,8 @@ module Program =
 
         run app //SATURN
 
+        //Adding a try block around run app is optional for better diagnostics during development or to customize startup error handling (e.g., logging, exit codes).
+        
         0
 
 (*
