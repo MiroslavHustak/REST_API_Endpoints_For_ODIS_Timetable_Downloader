@@ -1,0 +1,19 @@
+﻿Pod http://kodis.somee.com vytvoris adresar api
+
+z nej pak vytvor novu IIS aplikaci		
+http://kodis.somee.com/api	
+
+deprem do adresare api nacpi soubory, kere byly published
+
+pod adresarem api navic jeste manualne vytvor adresar CanopyResults
+
+do CanopyResults strc soubory 
+canopy_results.json
+jsonLinks_results.json
+
+pokud je nemas, tak vytvor prazdne jsony canopy_results.json a jsonLinks_results.json s nasledujici strukturou
+{
+  "list": []
+}
+
+vyse uvedene odpovida kodu v Program.fs (resp. jsony by mely by relevantni me Thoth serializaci):
