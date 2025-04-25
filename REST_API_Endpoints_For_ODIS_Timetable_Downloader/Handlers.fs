@@ -221,15 +221,15 @@ module Handlers =
         
             try
                 let fileInfo = FileInfo path
-        
-                let sizeKb = 
-                    match fileInfo.Exists with
-                    | true  -> fileInfo.Length / 1024L  //abychom dostali hodnotu v KB
-                    | false -> 0L
-                    
-                match (<) sizeKb <| int64 maxFileSizeKb with
-                | true  -> ()
-                | false -> fileInfo.Delete()
+                    in
+                    let sizeKb = 
+                        match fileInfo.Exists with
+                        | true  -> fileInfo.Length / 1024L  //abychom dostali hodnotu v KB
+                        | false -> 0L
+                        in
+                        match (<) sizeKb <| int64 maxFileSizeKb with
+                        | true  -> ()
+                        | false -> fileInfo.Delete()
         
                 Ok sizeKb
         
