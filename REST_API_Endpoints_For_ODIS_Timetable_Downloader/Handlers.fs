@@ -49,39 +49,33 @@ module Handlers =
 
         let getJsonStringAsync path =
             try
-                let readerAndfs = 
-                    pyramidOfDoom 
-                        {
-                            let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                            let! filepath = filepath, Error (sprintf "Chyba při čtení cesty k souboru: %s" path)
+                pyramidOfDoom
+                    {
+                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                        let! filepath = filepath, Error (sprintf "Chyba při čtení cesty k souboru: %s" path)
+        
+                        let fInfodat = FileInfo filepath
+                        let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
+                     
+                        let fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None)
+                        let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
+        
+                        let reader = new StreamReader(fs)
+                        let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
+        
+                        return Ok (reader, fs)
+                    }        
+                |> Result.map
+                    (fun (reader, fs) 
+                        ->
+                        async 
+                            {
+                                use reader = reader
+                                use fs = fs
 
-                            let fInfodat : FileInfo = FileInfo filepath
-                            let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
-                 
-                            let fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None) // nelze use
-                            let! _ = fs |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath)                        
-                    
-                            let reader = new StreamReader(fs)      // use nelze pouzit, neb k disposal dochazi uz v mem custom CE
-                            let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
-                
-                            return Ok (reader, fs)
-                        }
-
-                try
-                    readerAndfs
-                    |> Result.map 
-                        (fun (reader, fs)
-                            -> 
-                            async
-                                { 
-                                    return! 
-                                        reader.ReadToEndAsync()
-                                        |> Async.AwaitTask
-                                }
-                        ) 
-                finally
-                    readerAndfs
-                    |> function Ok (reader, fs) -> reader.Dispose(); fs.Dispose() | Error err -> ()
+                                return! reader.ReadToEndAsync() |> Async.AwaitTask
+                            }
+                )
             with
             | ex -> Error (string ex.Message)
 
@@ -115,8 +109,7 @@ module Handlers =
                             ctx.Response.ContentType <- "application/json"
                             ctx.Response.StatusCode <- 404
 
-                            return! text responseJson next ctx |> Async.AwaitTask  // GIRAFFE  
-
+                            return! text responseJson next ctx |> Async.AwaitTask  // GIRAFFE 
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx  // GIRAFFE 
                 }
@@ -136,34 +129,31 @@ module Handlers =
         let prepareJsonAsyncWrite (jsonString : string) path = // it only prepares an asynchronous operation that writes the json string
             
             try  
-                let writer = 
-                    pyramidOfDoom
-                        {
-                            let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                            let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
+                pyramidOfDoom
+                    {
+                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                        let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
 
-                            let fInfodat : FileInfo = FileInfo filepath
-                            let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
+                        let fInfodat : FileInfo = FileInfo filepath
+                        let! _ = fInfodat.Exists |> Option.ofBool, Error (sprintf "Soubor %s nenalezen" path) 
                                                                    
-                            let writer = new StreamWriter(filepath, false)                
-                            let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
+                        let writer = new StreamWriter(filepath, false)                
+                        let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
                                                                                        
-                            return Ok writer
-                        }         
-                try                 
-                    writer    
-                    |> Result.map 
-                        (fun writer 
-                            -> 
-                            async
-                                {
-                                    do! writer.WriteAsync jsonString |> Async.AwaitTask
-                                    return! writer.FlushAsync() |> Async.AwaitTask
-                                }
-                        ) 
-                finally   
-                    writer
-                    |> function Ok writer -> writer.Dispose() | Error err -> ()
+                        return Ok writer
+                    }         
+                            
+                |> Result.map 
+                    (fun writer 
+                        ->
+                        async
+                            {
+                                use writer = writer
+                                do! writer.WriteAsync(jsonString) |> Async.AwaitTask
+
+                                return! writer.FlushAsync() |> Async.AwaitTask
+                            }
+                    )
             with
             | ex -> Error (string ex.Message)
                        
@@ -184,10 +174,8 @@ module Handlers =
                         | Error err
                             ->                              
                             return! sendResponse 404 String.Empty err next ctx 
-                       
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx 
-
                 }   
             |> Async.StartImmediateAsTask 
 
@@ -199,33 +187,30 @@ module Handlers =
         let prepareJsonAsyncAppend (jsonString : string) path =
 
             try  
-                let writer = 
-                    pyramidOfDoom
-                        {
-                            let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                            let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
+                pyramidOfDoom
+                    {
+                        let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
+                        let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
 
-                            //pri append operation je soubor vytvoren, pokud neexistuje, proto nelze fInfodat.Exists a Error
+                        //pri append operation je soubor vytvoren, pokud neexistuje, proto nelze fInfodat.Exists a Error
                                                                    
-                            let writer = new StreamWriter(filepath, true)                
-                            let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
+                        let writer = new StreamWriter(filepath, true)                
+                        let! _ = writer |> Option.ofNull, Error (sprintf "%s%s" "Chyba při serializaci do " path)
                                                                                        
-                            return Ok writer
-                        }         
-                try                 
-                    writer    
-                    |> Result.map 
-                        (fun writer 
-                            -> 
-                            async
-                                {
-                                    do! writer.WriteLineAsync jsonString |> Async.AwaitTask
-                                    return! writer.FlushAsync() |> Async.AwaitTask
-                                }
-                        ) 
-                finally   
-                    writer
-                    |> function Ok writer -> writer.Dispose() | Error err -> ()            
+                        return Ok writer
+                    } 
+                    
+                |> Result.map 
+                    (fun writer 
+                        ->
+                        async
+                            {
+                                use writer = writer
+                                do! writer.WriteLineAsync jsonString |> Async.AwaitTask
+
+                                return! writer.FlushAsync() |> Async.AwaitTask
+                            }
+                    )            
             with
             | ex -> Error (string ex.Message)
     
