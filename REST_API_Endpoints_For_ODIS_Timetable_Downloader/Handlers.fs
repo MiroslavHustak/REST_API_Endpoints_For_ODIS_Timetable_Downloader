@@ -48,6 +48,7 @@ module Handlers =
     let private getHandler<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler =  // GIRAFFE
 
         let getJsonStringAsync path =
+
             try
                 pyramidOfDoom
                     {
