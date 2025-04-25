@@ -80,7 +80,8 @@ module Handlers =
             with
             | ex -> Error (string ex.Message)
 
-        fun (next : HttpFunc) (ctx : HttpContext) ->
+        fun (next : HttpFunc) (ctx : HttpContext)
+            ->
             async
                 {      
                     try
