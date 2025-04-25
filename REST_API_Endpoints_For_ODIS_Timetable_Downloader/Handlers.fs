@@ -64,7 +64,8 @@ module Handlers =
                         let! _ = reader |> Option.ofNull, Error (sprintf "Chyba při čtení dat ze souboru: %s" filepath) 
         
                         return Ok (reader, fs)
-                    }        
+                    }    
+                    
                 |> Result.map
                     (fun (reader, fs) 
                         ->
