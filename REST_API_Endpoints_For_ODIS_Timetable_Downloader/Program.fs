@@ -46,7 +46,7 @@ module Program =
 
             task
                 {
-                    match ctx.Request.Headers.TryGetValue("X-API-KEY") with
+                    match ctx.Request.Headers.TryGetValue "X-API-KEY" with
                     | true, key 
                         when string key = apiKey
                             ->
@@ -54,7 +54,7 @@ module Program =
                     | _ 
                             ->
                             ctx.Response.StatusCode <- 401
-                            do! ctx.Response.WriteAsync("Unauthorized: Invalid API Key")
+                            do! ctx.Response.WriteAsync "Unauthorized: Invalid API Key"
                             return None  // API key is missing or invalid
                 } 
       
@@ -63,11 +63,11 @@ module Program =
             router
                 { 
                     pipe_through validateApiKey //...for every request
-                    get "/" (getHandler pathCanopy)  //anebo /user atd.
+                    get "/" (linksHandler pathCanopy)  //anebo /user atd.
                     put "/" (putHandler pathCanopy) //anebo /user atd.      
-                    get "/jsonLinks" (getHandler pathJsonLinks)  //anebo /user atd.
+                    get "/jsonLinks" (linksHandler pathJsonLinks)  //anebo /user atd.
                     put "/jsonLinks" (putHandler pathJsonLinks) //anebo /user atd.   
-                    //get "/logging" (getHandler pathLogEntries)  TODO: dodelat
+                    get "/logging" (logEntriesHandler pathLogEntries)  
                     post "/logging" (postHandler pathLogEntries) 
                 }
 

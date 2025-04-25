@@ -8,9 +8,15 @@ open Thoth.Json
 open Thoth.Json.Net
 #endif
 
-type ResponseGet = 
+type ResponseGetLinks = 
     {
         GetLinks : string
+        Message : string
+    } 
+
+type ResponseGetLogEntries = 
+    {
+        GetLogEntries : string
         Message : string
     } 
 
@@ -29,11 +35,19 @@ type LogEntry =
 
 module ThothCoders =   
 
-    let internal encoderGet (result : ResponseGet) = 
+    let internal encoderGetLinks (result : ResponseGetLinks) = 
 
         Encode.object
             [
                 "GetLinks", Encode.string result.GetLinks  
+                "Message", Encode.string result.Message    
+            ]   
+
+    let internal encoderGetLogEntries (result : ResponseGetLogEntries) = 
+        
+        Encode.object
+            [
+                "GetLinks", Encode.string result.GetLogEntries  
                 "Message", Encode.string result.Message    
             ]   
                    
@@ -43,7 +57,16 @@ module ThothCoders =
             [
                 "Message1", Encode.string result.Message1 
                 "Message2", Encode.string result.Message2
-            ]   
+            ]  
+    
+    //zatim nepouzivano
+    let internal logEntryEncoder (result : LogEntry) = 
+
+       Encode.object
+            [               
+                "ErrorMessage", Encode.string result.ErrorMessage
+                "Timestamp", Encode.string result.Timestamp 
+            ] 
 
     //zatim nepouzivano
     let internal logEntryDecoder : Decoder<LogEntry> =
@@ -58,7 +81,7 @@ module ThothCoders =
             )
 
     //zatim nepouzivano
-    let internal responsePutDecoder : Decoder<ResponseGet> =
+    let internal responsePutDecoder : Decoder<ResponseGetLinks> =
         
         Decode.object
             (fun get
@@ -69,13 +92,6 @@ module ThothCoders =
                 }
             )
 
-    //zatim nepouzivano
-    let internal logEntryEncoder (result : LogEntry) = 
-
-       Encode.object
-            [               
-                "ErrorMessage", Encode.string result.ErrorMessage
-                "Timestamp", Encode.string result.Timestamp 
-            ]    
+   
   
     //{ "list": [{ "ErrorMessage": "error1" }, { "ErrorMessage": "error2" }, ...] }
