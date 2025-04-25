@@ -90,8 +90,6 @@ module ThothCoders =
                     GetLinks = get.Required.Field "GetLinks" Decode.string
                     Message = get.Required.Field "Message" Decode.string
                 }
-            )
-
-   
+            )   
   
     //{ "list": [{ "ErrorMessage": "error1" }, { "ErrorMessage": "error2" }, ...] }
