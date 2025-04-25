@@ -47,7 +47,7 @@ module ThothCoders =
         
         Encode.object
             [
-                "GetLinks", Encode.string result.GetLogEntries  
+                "GetLogEntries", Encode.string result.GetLogEntries  
                 "Message", Encode.string result.Message    
             ]   
                    
