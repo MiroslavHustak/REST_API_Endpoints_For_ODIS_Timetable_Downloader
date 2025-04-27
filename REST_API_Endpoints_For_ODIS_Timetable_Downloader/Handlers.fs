@@ -243,23 +243,19 @@ module Handlers =
                     try
                         use reader = new StreamReader(ctx.Request.Body)
                         let! body = reader.ReadToEndAsync() |> Async.AwaitTask
-                       
-                        match checkFileSize path with
-                        | Ok _
-                            ->                     
-                            match prepareJsonAsyncAppend body path with
-                            | Ok asyncWriter
-                                ->
-                                do! asyncWriter
-                                return! sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx 
 
-                            | Error err
-                                ->
-                                return! sendResponse 500 String.Empty err next ctx
+                        let asyncWriter, sendResponse = 
 
-                        | Error err 
-                            ->
-                            return! sendResponse 400 String.Empty err next ctx  
+                            pyramidOfAsyncInferno
+                                {
+                                    let! _ = checkFileSize path, (fun err -> sendResponse 400 String.Empty err next ctx)
+                                    let! asyncWriter = prepareJsonAsyncAppend body path, (fun err -> sendResponse 500 String.Empty err next ctx)
+                                
+                                    return asyncWriter, sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx 
+                                }
+
+                        do! asyncWriter   
+                        return! sendResponse
 
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" ex.Message) next ctx 

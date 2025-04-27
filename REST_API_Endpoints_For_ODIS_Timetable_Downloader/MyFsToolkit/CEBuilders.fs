@@ -4,6 +4,18 @@ open System
 open System.Data
 
 module Builders =
+
+    [<Struct>]
+    type internal MyBuilder4 = MyBuilder4 with       
+        member _.Bind(resultExpr, nextFunc) = 
+            match fst resultExpr with
+            | Ok value  -> nextFunc value 
+            | Error err -> async { return () }, (snd resultExpr) err
+        member _.Return x = x  
+        
+    let internal pyramidOfAsyncInferno = MyBuilder4 
+
+    //**************************************************************************************
            
     [<Struct>]
     type internal MyBuilder3 = MyBuilder3 with       
