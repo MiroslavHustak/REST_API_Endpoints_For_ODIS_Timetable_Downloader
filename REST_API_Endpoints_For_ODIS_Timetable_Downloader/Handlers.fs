@@ -245,7 +245,6 @@ module Handlers =
                         let! body = reader.ReadToEndAsync() |> Async.AwaitTask
 
                         let asyncWriter, sendResponse = 
-
                             pyramidOfAsyncInferno
                                 {
                                     let! _ = checkFileSize path, (fun err -> sendResponse 400 String.Empty err next ctx)

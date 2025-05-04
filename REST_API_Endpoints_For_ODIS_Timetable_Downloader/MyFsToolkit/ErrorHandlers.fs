@@ -4,8 +4,8 @@ open System
 
 open Builders
 
-[<RequireQualifiedAccess>]            
-module Result = 
+           
+module [<RequireQualifiedAccess>] Result = 
 
     let internal mapErr fOk (fErr : Lazy<'a>) =                          
         function
