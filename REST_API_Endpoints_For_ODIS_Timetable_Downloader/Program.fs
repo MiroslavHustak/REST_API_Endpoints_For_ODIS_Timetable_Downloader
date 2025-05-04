@@ -42,7 +42,7 @@ module Program =
         let pathJsonLinks = "CanopyResults/jsonLinks_results.json"
         let pathLogEntries = "Logging/logEntries.json"
 
-        let validateApiKey (next: HttpFunc) (ctx: HttpContext) =  //GIRAFFE
+        let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
             task
                 {
