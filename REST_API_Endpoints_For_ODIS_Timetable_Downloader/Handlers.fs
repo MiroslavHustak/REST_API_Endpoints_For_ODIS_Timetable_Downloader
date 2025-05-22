@@ -47,7 +47,7 @@ module Handlers =
 
     let private getHandler<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler =  // GIRAFFE
 
-        let getJsonStringAsync path =
+        let getJsonStringAsync () path =
 
             try
                 pyramidOfDoom
@@ -86,7 +86,7 @@ module Handlers =
             async
                 {      
                     try
-                        match getJsonStringAsync path with
+                        match getJsonStringAsync () path with
                         | Ok jsonStringAsync
                             ->
                             let! jsonString = jsonStringAsync
@@ -217,7 +217,7 @@ module Handlers =
             with
             | ex -> Error (string ex.Message)
     
-        let checkFileSize path =
+        let checkFileSize () path =
         
             try
                 let fileInfo = FileInfo path
@@ -247,7 +247,7 @@ module Handlers =
                         let asyncWriter, sendResponse = 
                             pyramidOfAsyncInferno
                                 {
-                                    let! _ = checkFileSize path, (fun err -> sendResponse 400 String.Empty err next ctx)
+                                    let! _ = checkFileSize () path, (fun err -> sendResponse 400 String.Empty err next ctx)
                                     let! asyncWriter = prepareJsonAsyncAppend body path, (fun err -> sendResponse 500 String.Empty err next ctx)
                                 
                                     return asyncWriter, sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx 
