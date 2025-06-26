@@ -16,13 +16,10 @@ module Handlers =
 
     open System
     open System.IO
-    open System.Data
-    
-    open Saturn
+   
     open Giraffe
     open Microsoft.AspNetCore.Http    
 
-    open Helpers
     open ThothCoders
 
     open MyFsToolkit

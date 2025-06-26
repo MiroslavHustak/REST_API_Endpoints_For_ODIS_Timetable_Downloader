@@ -1,8 +1,5 @@
 ﻿namespace MyFsToolkit
        
-open System       
-open System.Data
-
 module Builders =
 
     [<Struct>]

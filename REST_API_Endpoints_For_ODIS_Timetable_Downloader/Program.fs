@@ -1,28 +1,11 @@
 namespace LinksScrapedByCanopyApi
 
-open System
-open System.IO
-open System.Data
-
-open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Hosting
-
-open System.Threading.Tasks
-open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.DependencyInjection
-
 open Saturn
 open Giraffe
 
-open Helpers
+open Microsoft.AspNetCore.Http
 
-open Thoth.Json.Net
-
-open RestApiThothJson
 open RestApiThothJson.Handlers
-open RestApiThothJson.ThothCoders
 
 // REST API created with -> SATURN and GIRAFFE
 // Data format           -> JSON
