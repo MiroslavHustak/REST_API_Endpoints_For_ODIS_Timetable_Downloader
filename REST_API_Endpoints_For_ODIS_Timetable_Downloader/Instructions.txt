@@ -1,17 +1,19 @@
-﻿Pod http://kodis.somee.com vytvoris adresar api
+﻿Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks
 
 z nej pak vytvor novu IIS aplikaci		
-http://kodis.somee.com/api	
+http://kodis.somee.com/api
+http://kodis.somee.com/api/logging
+http://kodis.somee.com/api/jsonLinks	
 
-deprem do adresare api nacpi soubory, kere byly published
+deprem potem do adresare api nacpi soubory, kere byly published
 
-pod adresarem api navic jeste manualne vytvor adresar CanopyResults
+pod adresarem api navic jeste manualne vytvor adresar CanopyResults, aby nemusel byt soubor canopy_results.json s dll a exe soubory dohromady
 
-do CanopyResults strc soubory 
-canopy_results.json
-jsonLinks_results.json
+do CanopyResults strc soubory canopy_results.json
 
-pokud je nemas, tak vytvor prazdne jsony canopy_results.json a jsonLinks_results.json s nasledujici strukturou
+do logging a jsonLinks strc prislusne soubory
+
+pokud je nemas jsony, tak vytvor prazdne jsony s nasledujici strukturou
 {
   "list": []
 }

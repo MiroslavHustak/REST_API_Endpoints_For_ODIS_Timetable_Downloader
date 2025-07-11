@@ -22,8 +22,8 @@ module Program =
         let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  
 
         let pathCanopy = "CanopyResults/canopy_results.json"
-        let pathJsonLinks = "CanopyResults/jsonLinks_results.json"
-        let pathLogEntries = "Logging/logEntries.json"
+        let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
+        let pathLogEntries = "logging/logEntries.json"
 
         let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
@@ -47,9 +47,9 @@ module Program =
             router
                 { 
                     pipe_through validateApiKey //...for every request
-                    get "/" (linksHandler pathCanopy)  //anebo /user atd.
+                    get "/" (linksHandler pathCanopy)  //anebo /user atd. //to jsou jen endpoints / = api/, atd. 
                     put "/" (putHandler pathCanopy) //anebo /user atd.      
-                    get "/jsonLinks" (linksHandler pathJsonLinks)  //anebo /user atd.
+                    get "/jsonLinks" (linksHandler pathJsonLinks)  //anebo /user atd.  
                     put "/jsonLinks" (putHandler pathJsonLinks) //anebo /user atd.   
                     get "/logging" (logEntriesHandler pathLogEntries)  
                     post "/logging" (postHandler pathLogEntries) 
