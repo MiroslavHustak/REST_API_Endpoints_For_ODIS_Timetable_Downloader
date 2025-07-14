@@ -55,7 +55,7 @@ module Program =
                     get "/" (linksHandler pathCanopy)  //anebo /user atd. //to jsou jen endpoints / = api/, atd. 
                     put "/" (putHandler pathCanopy) //anebo /user atd.      
                     get "/jsonLinks" (linksHandler pathJsonLinks)  //anebo /user atd.  
-                    put "/jsonLinks" (putHandler pathJsonLinks) //anebo /user atd.   
+                    put "/jsonLinks" (putHandler pathJsonLinks) //anebo /user atd.   tady /jsonLinks prijdou data, ktere se ulozi do jsonLinks/jsonLinks_results.json
                     get "/logging" (logEntriesHandler pathLogEntries)  
                     post "/logging" (postHandler pathLogEntries) 
                 }

@@ -1,6 +1,6 @@
 ﻿Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks
 
-z nej pak vytvor novu IIS aplikaci		
+z nej pak vytvor novu IIS aplikaci (nevim, cemu somee svazuje neco, co neni nakonec svazane, pro endpoint logging nemusi byt adresar logging)		
 http://kodis.somee.com/api
 http://kodis.somee.com/api/logging
 http://kodis.somee.com/api/jsonLinks	
