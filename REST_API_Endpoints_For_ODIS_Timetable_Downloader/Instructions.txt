@@ -19,3 +19,6 @@ pokud je nemas jsony, tak vytvor prazdne jsony s nasledujici strukturou
 }
 
 vyse uvedene odpovida kodu v Program.fs (resp. jsony by mely by relevantni me Thoth serializaci):
+
+a nakonec:
+STOP and START the website !!!
