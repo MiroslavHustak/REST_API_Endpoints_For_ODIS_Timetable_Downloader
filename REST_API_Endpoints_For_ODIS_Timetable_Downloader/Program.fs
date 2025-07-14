@@ -25,6 +25,11 @@ module Program =
         let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
         let pathLogEntries = "logging/logEntries.json"
 
+        (*
+        let pathCanopy = "CanopyResults/canopy_results.json"
+        let pathJsonLinks = "CanopyResults/jsonLinks_results.json"
+        let pathLogEntries = "logEntries.json"
+        *)
         let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
             task
