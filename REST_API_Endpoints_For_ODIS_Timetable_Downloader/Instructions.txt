@@ -1,9 +1,6 @@
-﻿Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks
+﻿Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks. Ne pod api, ale na stejne urovni, jako api. Nevim cemu, opravdu. Mozes je pak smazat.
 
-z nej pak vytvor novu IIS aplikaci (nevim, cemu somee svazuje neco, co neni nakonec svazane, pro endpoint logging nemusi byt adresar logging)		
-http://kodis.somee.com/api
-http://kodis.somee.com/api/logging
-http://kodis.somee.com/api/jsonLinks	
+z nich pak vytvor nove IIS aplikace (nevim, cemu somee svazuje neco, co neni nakonec svazane, pro endpoint logging nemusi byt adresar logging)		
 
 deprem potem do adresare api nacpi soubory, kere byly published
 
@@ -11,9 +8,10 @@ pod adresarem api navic jeste manualne vytvor adresar CanopyResults, aby nemusel
 
 do CanopyResults strc soubory canopy_results.json
 
-do logging a jsonLinks strc prislusne soubory
+!!! pod adresarem api opet vytvor adresare logging a jsonLinks
+do logging a jsonLinks strc prislusne soubory logEntries.json a jsonLinks.json
 
-pokud je nemas jsony, tak vytvor prazdne jsony s nasledujici strukturou
+pokud je nemas, tak vytvor prazdne jsony s nasledujici strukturou
 {
   "list": []
 }
@@ -22,3 +20,12 @@ vyse uvedene odpovida kodu v Program.fs (resp. jsony by mely by relevantni me Th
 
 a nakonec:
 STOP and START the website !!!
+
+
+URL	Relative path	
+http://kodis.somee.com		
+http://kodis.somee.com/api	/api	
+
+http://kodis.somee.com/jsonLinks	/jsonLinks	
+
+http://kodis.somee.com/logging	/logging
