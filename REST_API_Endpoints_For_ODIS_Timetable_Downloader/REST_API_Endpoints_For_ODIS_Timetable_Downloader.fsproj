@@ -14,7 +14,6 @@
 		<Content Include="Education.txt" />
 		<Compile Include="MyFsToolkit\CEBuilders.fs" />
 		<Compile Include="MyFsToolkit\ErrorHandlers.fs" />
-		<Compile Include="MyFsToolkit\Helpers.fs" />
 		<Compile Include="ThothCoders.fs" />
 		<Compile Include="Handlers.fs" />
 		<Compile Include="Program.fs" />
