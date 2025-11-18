@@ -1,4 +1,6 @@
-﻿Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks. Ne pod api, ale na stejne urovni, jako api. Nevim cemu, opravdu. Mozes je pak smazat.
+﻿Este nic z Publish nekopiruj, prvni zrob, co nize
+
+Pod http://kodis.somee.com vytvoris adresar api, pak jeste adresare logging, pak jeste jsonLinks. Ne pod api, ale na stejne urovni, jako api. Nevim cemu, opravdu. Mozes je pak smazat.
 
 z nich pak vytvor nove IIS aplikace (nevim, cemu somee svazuje neco, co neni nakonec svazane, pro endpoint logging nemusi byt adresar logging)		
 
@@ -9,7 +11,7 @@ pod adresarem api navic jeste manualne vytvor adresar CanopyResults, aby nemusel
 do CanopyResults strc soubory canopy_results.json
 
 !!! pod adresarem api opet vytvor adresare logging a jsonLinks
-do logging a jsonLinks strc prislusne soubory logEntries.json a jsonLinks.json
+do logging a jsonLinks strc prislusne soubory logEntries.json a jsonLinks_results.json
 
 pokud je nemas, tak vytvor prazdne jsony s nasledujici strukturou
 {
