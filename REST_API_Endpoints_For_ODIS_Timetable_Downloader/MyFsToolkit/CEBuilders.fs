@@ -2,7 +2,6 @@
        
 module Builders =
 
-    [<Struct>]
     type internal MyBuilder4 = MyBuilder4 with  
         member _.Recover(m, nextFunc) = //neni monada, nesplnuje vsechny 3 monadicke zakony (left/right identity, associativity)   
             match m with
@@ -21,7 +20,6 @@ module Builders =
 
     //**************************************************************************************
 
-    [<Struct>]
     type internal MyBuilder3 = MyBuilder3 with   
         member _.Recover(m, nextFunc) = //neni monada, nesplnuje vsechny 3 monadicke zakony   
             match m with
@@ -40,7 +38,6 @@ module Builders =
      
     //**************************************************************************************
 
-    [<Struct>]
     type internal MyBuilder = MyBuilder with    
         member _.Bind(m : bool * (unit -> 'a), nextFunc : unit -> 'a) : 'a =
               match m with
@@ -58,7 +55,6 @@ module Builders =
 
     //**************************************************************************************
 
-    [<Struct>]
     type internal Builder2 = Builder2 with    
         member _.Bind((m, recovery), nextFunc) =
             match m with
