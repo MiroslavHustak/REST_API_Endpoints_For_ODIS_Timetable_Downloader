@@ -18,14 +18,11 @@ module Handlers =
     open System.IO
    
     open Giraffe
-    open Microsoft.AspNetCore.Http  
-    
     open FsToolkit.ErrorHandling
+    open Microsoft.AspNetCore.Http      
 
     open ThothCoders
-
     open MyFsToolkit
-    open MyFsToolkit.Builders   
 
     let [<Literal>] private jsonEmpty = """{ "list": [] }"""
     let [<Literal>] private indentation = 2
@@ -33,14 +30,18 @@ module Handlers =
 
     //*************** Helpers ****************
 
+    type private GetError =
+        | GetInvalidPath of string
+        | GetReadFailed of string
+
+    type private PutError =
+        | PutInvalidPath of string
+        | PutWriteFailed of string
+
     type private PostError =
         | SizeExceeded of string
         | ServerError of string
-        | PostWriteFailed of string
-
-    type private PutError =
-        | InvalidPath of string
-        | PutWriteFailed of string
+        | PostWriteFailed of string    
 
     let private sendResponse statusCode msg1 msg2 next (ctx: HttpContext) =
             
@@ -57,7 +58,8 @@ module Handlers =
 
     let private getHandler<'a> path createResponse (encodeResponse: 'a -> JsonValue) : HttpHandler =
 
-        fun (next : HttpFunc) (ctx : HttpContext) ->
+        fun (next: HttpFunc) (ctx: HttpContext)
+            ->
             async 
                 {
                     try
@@ -68,19 +70,21 @@ module Handlers =
                                     let! fullPath =
                                         Path.GetFullPath path
                                         |> Option.ofNullEmpty
-                                        |> Option.toResult (sprintf "Chyba při čtení cesty k souboru: %s" path)                            
-    
-                                    use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                                    use reader = new StreamReader(fs)
+                                        |> Option.toResult (GetInvalidPath (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))           
+                                    
+                                    use! reader =
+                                        try
+                                           use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                                           Ok <| new StreamReader(fs)
+                                        with
+                                        | ex -> Error (GetReadFailed (sprintf "Chyba při čtení ze souboru: %s" (string ex.Message))) 
     
                                     let! content = reader.ReadToEndAsync() |> Async.AwaitTask
-    
-                                    let content =
+
+                                    return 
                                         content
                                         |> Option.ofNullEmpty
                                         |> Option.defaultValue jsonEmpty
-    
-                                    return content
                                 }
 
                         match! readJsonAsync () with
@@ -99,10 +103,10 @@ module Handlers =
                                                                      
                             return! text responseJson next ctx |> Async.AwaitTask // GIRAFFE
 
-                        | Error err 
+                        | Error _ 
                             -> 
                             let responseJson =
-                                createResponse >> encodeResponse >> Encode.toString indentation <| (jsonEmpty, err)                   
+                                createResponse >> encodeResponse >> Encode.toString indentation <| (jsonEmpty, "Failure")                   
 
                             ctx.Response.ContentType <- "application/json"
                             ctx.Response.StatusCode <- 404
@@ -140,7 +144,7 @@ module Handlers =
                                     let! fullPath =
                                         Path.GetFullPath path
                                         |> Option.ofNullEmpty
-                                        |> Option.toResult (InvalidPath (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))                           
+                                        |> Option.toResult (PutInvalidPath (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))                           
                                     
                                     use! writer =
                                         try
@@ -159,7 +163,7 @@ module Handlers =
                         | Ok ()
                             ->
                             return! sendResponse 200 "Successfully updated" String.Empty next ctx
-                        | Error (InvalidPath msg) 
+                        | Error (PutInvalidPath msg) 
                             ->
                             return! sendResponse 400 String.Empty msg next ctx
                         | Error (PutWriteFailed msg) 
@@ -247,7 +251,6 @@ module Handlers =
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" (string ex.Message)) next ctx
                 }
             |> Async.StartImmediateAsTask
-
 
 
 // Old code for educational comparison
