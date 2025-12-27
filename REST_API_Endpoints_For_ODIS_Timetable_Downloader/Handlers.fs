@@ -26,7 +26,7 @@ module Handlers =
 
     let [<Literal>] private jsonEmpty = """{ "list": [] }"""
     let [<Literal>] private indentation = 2
-    let [<Literal>] private maxFileSizeKb = 512L // Maximum file size in kilobytes 
+    let [<Literal>] private maxFileSizeKb = 10L // Maximum file size in kilobytes 
 
     //*************** Helpers ****************
 
