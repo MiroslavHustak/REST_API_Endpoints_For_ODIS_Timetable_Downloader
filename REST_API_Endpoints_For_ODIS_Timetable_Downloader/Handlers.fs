@@ -189,9 +189,7 @@ module Handlers =
                         do! File.WriteAllBytesAsync(fullPath, Array.empty<byte>) |> Async.AwaitTask
                         return Ok ()
                     with
-                    | ex 
-                        ->
-                        return Error (ServerError (sprintf "Chyba při ořezávání souboru: %s" (string ex.Message)))
+                    | ex -> return Error (ServerError (sprintf "Chyba při ořezávání souboru: %s" (string ex.Message)))
                 }
     
         fun (next: HttpFunc) (ctx: HttpContext) 
@@ -232,8 +230,7 @@ module Handlers =
                                         do! writer.FlushAsync() |> Async.AwaitTask
                                         return ()
                                     with
-                                    | ex ->
-                                        return! Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" ex.Message))
+                                    | ex -> return! Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" ex.Message))
                                 }
     
                         match! appendJsonAsync body with
