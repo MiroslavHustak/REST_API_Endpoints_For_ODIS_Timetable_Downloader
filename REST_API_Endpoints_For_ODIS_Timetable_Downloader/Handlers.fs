@@ -153,8 +153,8 @@ module Handlers =
                                         | ex -> Error (PutWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
                                 
                                     // AsyncResult.ofAsync lifts a successful async operation into Async<Result<unit, _>> as Ok ().      
-                                    do! writer.WriteAsync(jsonString) |> Async.AwaitTask |> AsyncResult.ofAsync
-                                    do! writer.FlushAsync() |> Async.AwaitTask |> AsyncResult.ofAsync
+                                    do! writer.WriteAsync(jsonString) |> Async.AwaitTask
+                                    do! writer.FlushAsync() |> Async.AwaitTask
     
                                     return ()
                                 }
@@ -223,8 +223,8 @@ module Handlers =
                                         | ex -> Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
     
                                     // Write line and flush
-                                    do! writer.WriteLineAsync(jsonString) |> Async.AwaitTask |> AsyncResult.ofAsync
-                                    do! writer.FlushAsync() |> Async.AwaitTask |> AsyncResult.ofAsync //to ensure data is on disk immediately before continuing                                  
+                                    do! writer.WriteLineAsync(jsonString) |> Async.AwaitTask 
+                                    do! writer.FlushAsync() |> Async.AwaitTask  //to ensure data is on disk immediately before continuing                                  
     
                                     return ()
                                 }  
