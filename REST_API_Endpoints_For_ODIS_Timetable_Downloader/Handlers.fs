@@ -197,8 +197,8 @@ module Handlers =
             with
             | _ -> Error (SizeExceeded "Překročena maximální velikost souboru")            
 
-        fun (next: HttpFunc) (ctx: HttpContext) ->  //GIRAFFE
-    
+        fun (next: HttpFunc) (ctx: HttpContext)  //GIRAFFE
+            -> 
             async
                 {
                     try
