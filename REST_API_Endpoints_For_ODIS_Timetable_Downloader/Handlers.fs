@@ -161,14 +161,13 @@ module Handlers =
 
                         match! writeJsonAsync body with
                         | Ok ()
-                            ->
-                            return! sendResponse 200 "Successfully updated" String.Empty next ctx
+                            -> return! sendResponse 200 "Successfully updated" String.Empty next ctx
+
                         | Error (PutInvalidPath msg) 
-                            ->
-                            return! sendResponse 400 String.Empty msg next ctx
+                            -> return! sendResponse 400 String.Empty msg next ctx
+
                         | Error (PutWriteFailed msg) 
-                            ->
-                            return! sendResponse 500 String.Empty msg next ctx
+                            -> return! sendResponse 500 String.Empty msg next ctx
     
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx 
@@ -232,20 +231,16 @@ module Handlers =
                                               
                         match! appendJsonAsync body with
                         | Ok () 
-                            ->
-                            return! sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx
+                            -> return! sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx
 
                         | Error (SizeExceeded msg) 
-                            ->
-                            return! sendResponse 400 String.Empty msg next ctx
+                            -> return! sendResponse 400 String.Empty msg next ctx
 
                         | Error (ServerError msg)
-                            ->
-                            return! sendResponse 500 String.Empty msg next ctx
+                            -> return! sendResponse 500 String.Empty msg next ctx
 
                         | Error (PostWriteFailed msg) 
-                            -> 
-                            return! sendResponse 500 String.Empty msg next ctx
+                            -> return! sendResponse 500 String.Empty msg next ctx
     
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" (string ex.Message)) next ctx
