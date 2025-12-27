@@ -72,19 +72,18 @@ module Handlers =
                                         |> Option.ofNullEmpty
                                         |> Option.toResult (GetInvalidPath (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))           
                                     
-                                    use! reader =
-                                        try
-                                           use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                                           Ok <| new StreamReader(fs)
-                                        with
-                                        | ex -> Error (GetReadFailed (sprintf "Chyba při čtení ze souboru: %s" (string ex.Message))) 
+                                    try
+                                        use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                                        use reader = new StreamReader(fs)                                       
     
-                                    let! content = reader.ReadToEndAsync() |> Async.AwaitTask
+                                        let! content = reader.ReadToEndAsync() |> Async.AwaitTask
 
-                                    return 
-                                        content
-                                        |> Option.ofNullEmpty
-                                        |> Option.defaultValue jsonEmpty
+                                        return 
+                                            content
+                                            |> Option.ofNullEmpty
+                                            |> Option.defaultValue jsonEmpty
+                                    with
+                                    | ex -> return! Error (GetReadFailed (sprintf "Chyba při čtení ze souboru: %s" (string ex.Message))) 
                                 }
 
                         match! readJsonAsync () with
@@ -127,7 +126,7 @@ module Handlers =
         
     // ************** PUT ******************* 
 
-    let internal putHandler path : HttpHandler =
+    let internal putHandler path : HttpHandler = //for links updating
        
         fun (next: HttpFunc) (ctx: HttpContext) //GIRAFFE
             ->  
@@ -146,17 +145,14 @@ module Handlers =
                                         |> Option.ofNullEmpty
                                         |> Option.toResult (PutInvalidPath (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))                           
                                     
-                                    use! writer =
-                                        try
-                                           Ok <| new StreamWriter(fullPath, append = false)
-                                        with
-                                        | ex -> Error (PutWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
-                                
-                                    // AsyncResult.ofAsync lifts a successful async operation into Async<Result<unit, _>> as Ok ().      
-                                    do! writer.WriteAsync(jsonString) |> Async.AwaitTask
-                                    do! writer.FlushAsync() |> Async.AwaitTask
+                                    try
+                                        use writer = new StreamWriter(fullPath, append = false)
+                                        do! writer.WriteAsync(jsonString) |> Async.AwaitTask
+                                        do! writer.FlushAsync() |> Async.AwaitTask
     
-                                    return ()
+                                        return ()
+                                    with
+                                    | ex -> return! Error (PutWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
                                 }
 
                         match! writeJsonAsync body with
@@ -174,79 +170,89 @@ module Handlers =
                 }      
             |> Async.StartImmediateAsTask 
      
- // ************** POST *******************     
+// ************** POST *******************    
+ 
+    let internal postHandler path : HttpHandler = //for log entries appending
     
-    let internal postHandler path : HttpHandler =
-
-        let checkFileSize () path =
-                    
+        let getCurrentSizeKb (fullPath: string) : Result<int64, PostError> =
             try
-                let fileInfo = FileInfo path
-                    in
-                    let sizeKb = 
-                        match fileInfo.Exists with
-                        | true  -> fileInfo.Length / 1024L  //abychom dostali hodnotu v KB
-                        | false -> 0L
-                        in
-                        match (<) sizeKb <| int64 maxFileSizeKb with
-                        | true  -> ()
-                        | false -> fileInfo.Delete()
-                    
-                Ok sizeKb                    
+                let fi = FileInfo fullPath
+                Ok (fi.Exists |> function true -> fi.Length / 1024L | false -> 0L)
             with
-            | _ -> Error (SizeExceeded "Překročena maximální velikost souboru")            
+            | ex -> Error (ServerError (sprintf "Chyba při čtení velikosti souboru: %s" (string ex.Message)))
+    
+        let truncateFile (fullPath : string) : Async<Result<unit, PostError>> =
 
-        fun (next: HttpFunc) (ctx: HttpContext)  //GIRAFFE
-            -> 
             async
+                {
+                    try
+                        do! File.WriteAllBytesAsync(fullPath, Array.empty<byte>) |> Async.AwaitTask
+                        return Ok ()
+                    with
+                    | ex 
+                        ->
+                        return Error (ServerError (sprintf "Chyba při ořezávání souboru: %s" (string ex.Message)))
+                }
+    
+        fun (next: HttpFunc) (ctx: HttpContext) 
+            ->
+            async 
                 {
                     try
                         use reader = new StreamReader(ctx.Request.Body)
                         let! body = reader.ReadToEndAsync() |> Async.AwaitTask
     
+                        // Accurate byte estimation
+                        let estimatedNewBytes = 
+                            (System.Text.Encoding.UTF8.GetByteCount body |> int64) + 100L  // margin for newline + formatting
+    
                         let appendJsonAsync (jsonString: string) =
 
-                            asyncResult
+                            asyncResult 
                                 {
                                     let! fullPath =
                                         Path.GetFullPath path
                                         |> Option.ofNullEmpty
-                                        |> Option.toResult (ServerError (sprintf "%s%s" "Chyba při čtení cesty k souboru " path))
+                                        |> Option.toResult (ServerError (sprintf "Chyba při čtení cesty k souboru: %s" path))
     
-                                    let! _ = checkFileSize () path
+                                    let! currentSizeKb = getCurrentSizeKb fullPath |> AsyncResult.ofResult
     
-                                    // Open in append mode (creates file if not exists)
-                                    use! writer =
-                                        try
-                                           Ok <| new StreamWriter(fullPath, append = true)
-                                        with
-                                        | ex -> Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
+                                    let estimatedTotalKb = currentSizeKb + (estimatedNewBytes / 1024L)
     
-                                    // Write line and flush
-                                    do! writer.WriteLineAsync(jsonString) |> Async.AwaitTask 
-                                    do! writer.FlushAsync() |> Async.AwaitTask  //to ensure data is on disk immediately before continuing                                  
+                                    match estimatedTotalKb >= int64 maxFileSizeKb with
+                                    | true  ->
+                                            let! _ = truncateFile fullPath
+                                            ()
+                                    | false ->
+                                            ()
     
-                                    return ()
-                                }  
-                                              
+                                    try
+                                        use writer = new StreamWriter(fullPath, append = true)
+                                        do! writer.WriteLineAsync jsonString |> Async.AwaitTask
+                                        do! writer.FlushAsync() |> Async.AwaitTask
+                                        return ()
+                                    with
+                                    | ex ->
+                                        return! Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" ex.Message))
+                                }
+    
                         match! appendJsonAsync body with
                         | Ok () 
                             -> return! sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx
-
-                        | Error (SizeExceeded msg) 
-                            -> return! sendResponse 400 String.Empty msg next ctx
-
+    
                         | Error (ServerError msg)
                             -> return! sendResponse 500 String.Empty msg next ctx
-
+    
                         | Error (PostWriteFailed msg) 
                             -> return! sendResponse 500 String.Empty msg next ctx
-    
-                    with
-                    | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" (string ex.Message)) next ctx
-                }
-            |> Async.StartImmediateAsTask
 
+                        | Error (SizeExceeded msg)
+                            -> return! sendResponse 413 String.Empty msg next ctx // SizeExceeded no longer used, but kept for completeness
+
+                    with
+                    | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" ex.Message) next ctx
+                }
+            |> Async.StartImmediateAsTask    
 
 // Old code for educational comparison
 
