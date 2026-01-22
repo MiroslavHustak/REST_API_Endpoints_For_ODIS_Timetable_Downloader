@@ -56,7 +56,7 @@ module Handlers =
         
     // ************** GET ******************* 
 
-    let private getHandler<'a> path createResponse (encodeResponse: 'a -> JsonValue) : HttpHandler =
+    let private getHandler<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler =
 
         fun (next: HttpFunc) (ctx: HttpContext)
             ->
