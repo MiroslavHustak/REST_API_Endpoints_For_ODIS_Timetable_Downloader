@@ -24,12 +24,7 @@ module Program =
         let pathCanopy = "CanopyResults/canopy_results.json"
         let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
         let pathLogEntries = "logging/logEntries.json"
-
-        (*
-        let pathCanopy = "CanopyResults/canopy_results.json"
-        let pathJsonLinks = "CanopyResults/jsonLinks_results.json"
-        let pathLogEntries = "logEntries.json"
-        *)
+  
         let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
             task
@@ -42,11 +37,10 @@ module Program =
                     | _ 
                             ->
                             ctx.Response.StatusCode <- 401
-                            do! ctx.Response.WriteAsync "Unauthorized: Invalid API Key"
-                           
-                            return None  // API key is missing or invalid
+                            ctx.Response.ContentType <- "application/json"
+                            return! ctx.WriteJsonAsync({| message = "Unauthorized: Invalid API Key" |})
                 } 
-      
+     
         let apiRouter = //SATURN //http://kodis.somee.com
                                   
             router
