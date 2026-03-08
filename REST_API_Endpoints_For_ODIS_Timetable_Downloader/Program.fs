@@ -1,10 +1,13 @@
 namespace LinksScrapedByCanopyApi
 
+open System
+
 open Saturn
 open Giraffe
 
 open Microsoft.AspNetCore.Http
 
+open MyFsToolkit
 open RestApiThothJson.Handlers
 
 // REST API created with -> SATURN and GIRAFFE
@@ -19,7 +22,12 @@ module Program =
     [<EntryPoint>]
     let main args =
 
-        let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  
+        //let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  
+
+        let apiKey = 
+            System.Environment.GetEnvironmentVariable "API_KEY"
+            |> Option.ofNull
+            |> Option.defaultValue "fallback-dev-key"
 
         let pathCanopy = "CanopyResults/canopy_results.json"
         let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
@@ -56,10 +64,15 @@ module Program =
 
         let app =  //SATURN
 
+            let url_path =   
+                match Environment.GetEnvironmentVariable "DOTNET_RUNNING_IN_CONTAINER" with
+                | "true" -> @"http://0.0.0.0:80"  //For Docker networking
+                | _      -> @"http://kodis.somee.com/api" 
+
             application
                 {
                     use_router apiRouter
-                    url "http://kodis.somee.com/api"
+                    url url_path
                     memory_cache
                     use_static "static"
                     use_gzip

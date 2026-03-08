@@ -1,0 +1,87 @@
+﻿REM Networking
+docker build -t canopy-api .
+docker network create canopy-net
+
+REM Run the API Container (includes volume mounting - data will be lost when the container stops unless you mount a volume:)
+REM Run the API container first (it must exist before the scraper tries to reach it)
+docker run -d ^
+  --name canopy-api ^
+  --network canopy-net ^
+  -p 8080:80 ^
+  -e API_KEY=test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3 ^
+  -v C:\data\results:/app/CanopyResults ^
+  -v C:\data\logs:/app/logging ^
+  canopy-api
+
+REM Run the Scraper Container
+docker build -t canopy-scraper .
+
+docker run -it ^
+  --name canopy-scraper ^
+  --network canopy-net ^
+  -e API_URL=http://canopy-api/results ^
+  canopy-scraper
+
+REM View running containers
+docker ps
+
+REM View logs
+docker logs canopy-api
+
+REM Stop a container
+docker stop canopy-api
+
+REM Remove a container
+docker rm canopy-api
+
+REM Inspect the network
+docker network inspect canopy-net
+
+The URL is **not arbitrary** — each part has a specific meaning:
+
+## Breaking Down `http://canopy-api/results`
+
+```
+http://canopy-api/results
+         ↑           ↑
+   container name   endpoint defined
+   = Docker DNS     in your Saturn router
+```
+
+### `canopy-api` — NOT freely chosen here
+This must **exactly match** the `--name` you gave the API container:
+```cmd
+docker run --name canopy-api ...
+```
+Docker's internal DNS resolves container names automatically within the same network. If you named it `my-api` you'd write `http://my-api/results`.
+
+### `/results` — must match your Saturn router
+This must match an endpoint defined in your `apiRouter`:
+```fsharp
+let apiRouter =
+    router
+        {
+            get "/"         (linksHandler pathCanopy)
+            put "/"         (putHandler pathCanopy)
+            get "/jsonLinks" (linksHandler pathJsonLinks)
+            put "/jsonLinks" (putHandler pathJsonLinks)
+            get "/logging"  (logEntriesHandler pathLogEntries)
+            post "/logging" (postHandler pathLogEntries)
+        }
+```
+So the valid URLs from the scraper container would be:
+```
+http://canopy-api/
+http://canopy-api/jsonLinks
+http://canopy-api/logging
+```
+
+---
+
+## Rule of Thumb
+
+| Part | Freely chosen?    | Must match |
+|---   |             ---   |         ---|
+| `http://`    | Fixed     |          — |
+| `canopy-api` | No        | `--name` of the API container  |
+| `/results`   | No        | Route defined in Saturn router |
