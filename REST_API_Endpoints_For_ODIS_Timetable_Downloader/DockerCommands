@@ -2,7 +2,7 @@
 docker build -t canopy-api .
 docker network create canopy-net
 
-REM Run the API Container (includes volume mounting - data will be lost when the container stops unless you mount a volume:)
+REM Run the API Container (includes volume mounting - data will be lost when the container stops unless you mount a volume)
 REM Run the API container first (it must exist before the scraper tries to reach it)
 docker run -d ^
   --name canopy-api ^
