@@ -1,6 +1,7 @@
 namespace LinksScrapedByCanopyApi
 
 open System
+open System.IO
 
 open Saturn
 open Giraffe
@@ -28,10 +29,22 @@ module Program =
             System.Environment.GetEnvironmentVariable "API_KEY"
             |> Option.ofNull
             |> Option.defaultValue "fallback-dev-key"
+        
+        //let pathCanopy = "CanopyResults/canopy_results.json"
+        //let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
+        //let pathLogEntries = "logging/logEntries.json"
 
-        let pathCanopy = "CanopyResults/canopy_results.json"
-        let pathJsonLinks = "jsonLinks/jsonLinks_results.json"
-        let pathLogEntries = "logging/logEntries.json"
+        // Kubernetes
+        let basePath =
+            Environment.GetEnvironmentVariable "APP_DATA_PATH"
+            |> Option.ofNullEmptySpace
+            |> Option.defaultValue AppContext.BaseDirectory  
+
+        let serviceRoot = Path.Combine(basePath, "canopy")      
+
+        let pathCanopy = Path.Combine(serviceRoot, "CanopyResults", "canopy_results.json") 
+        let pathJsonLinks = Path.Combine(serviceRoot, "jsonLinks", "jsonLinks_results.json") 
+        let pathLogEntries = Path.Combine(serviceRoot, "logging", "logEntries.json") 
   
         let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
