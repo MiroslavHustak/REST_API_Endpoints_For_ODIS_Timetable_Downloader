@@ -42,7 +42,7 @@ module Program =
             |> Option.ofNullEmptySpace
             |> Option.defaultValue AppContext.BaseDirectory  
 
-        let serviceRoot = Path.Combine(basePath, "canopy")      
+        let serviceRoot = basePath // root for this service's data // if the path logic is to be changed, use Path.Combine like Path.Combine(basePath, "canopy")       
 
         let pathCanopy = Path.Combine(serviceRoot, "CanopyResults", "canopy_results.json") 
         let pathJsonLinks = Path.Combine(serviceRoot, "jsonLinks", "jsonLinks_results.json") 
