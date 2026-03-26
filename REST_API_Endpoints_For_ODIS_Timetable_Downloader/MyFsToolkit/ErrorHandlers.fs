@@ -77,13 +77,13 @@ module Option =
         | true  -> Some value  
         | false -> None
             
-    let internal ofNull (value : 'nullableValue) =
-        match System.Object.ReferenceEquals(value, null) with 
+    let internal ofNull' (value : 'nullableValue) =
+        match System.Object.ReferenceEquals(box value, null) with 
         | true  -> None
         | false -> Some value     
 
-    let internal ofPtrOrNull (value : 'nullableValue) =  
-        match System.Object.ReferenceEquals(value, null) with 
+    let inline internal ofPtrOrNull (value : 'nullableValue) =  
+        match System.Object.ReferenceEquals(box value, null) with 
         | true  ->
                 None
         | false -> 
@@ -95,24 +95,24 @@ module Option =
                     -> None
                 | _   
                     -> Some value          
-                                  
-    let internal ofNullEmpty (value : 'nullableValue) = //NullOrEmpty
-        pyramidOfDoom //nelze option {}
+    
+    let inline internal ofNullEmpty (value : 'nullableValue) : string option = //NullOrEmpty
+        pyramidOfDoom 
             {
-                let!_ = (not <| System.Object.ReferenceEquals(value, null)) |> fromBool Some, None 
+                let!_ = (not <| System.Object.ReferenceEquals(box value, null)) |> fromBool value, None 
                 let value = string value 
-                let! _ = (not <| String.IsNullOrEmpty value) |> fromBool Some, None 
+                let! _ = (not <| String.IsNullOrEmpty value) |> fromBool value, None //IsNullOrEmpty is not for nullable types
 
                 return Some value
             }
 
-    let internal ofNullEmptySpace (value : 'nullableValue) = //NullOrEmpty, NullOrWhiteSpace
+    let inline internal ofNullEmptySpace (value : 'nullableValue) = //NullOrEmpty, NullOrWhiteSpace
         pyramidOfDoom //nelze option {}
             {
-                let!_ = (not <| System.Object.ReferenceEquals(value, null)) |> fromBool Some, None 
+                let!_ = (not <| System.Object.ReferenceEquals(box value, null)) |> fromBool Some, None 
                 let value = string value 
                 let! _ = (not <| String.IsNullOrWhiteSpace(value)) |> fromBool Some, None
-    
+       
                 return Some value
             }
 
@@ -134,6 +134,6 @@ module Casting =
     
     //normalne nepouzivat!!! zatim nutnost jen u deserializace xml - viz SAFE Stack app
     let internal castAs<'a> (o : obj) : 'a option =    //the :? operator in F# is used for type testing     srtp pri teto strukture nefunguje
-        match Option.ofNull o with
+        match Option.ofNull' o with
         | Some (:? 'a as result) -> Some result
         | _                      -> None
