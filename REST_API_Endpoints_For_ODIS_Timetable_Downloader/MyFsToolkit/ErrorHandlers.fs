@@ -83,11 +83,13 @@ module Option =
         | false -> Some value     
 
     let inline internal ofPtrOrNull (value : 'nullableValue) =  
-        match System.Object.ReferenceEquals(box value, null) with 
+        let boxedValue = box value
+
+        match System.Object.ReferenceEquals(boxedValue, null) with 
         | true  ->
                 None
         | false -> 
-                match box value with
+                match boxedValue with
                 | null 
                     -> None
                 | :? IntPtr as ptr 
