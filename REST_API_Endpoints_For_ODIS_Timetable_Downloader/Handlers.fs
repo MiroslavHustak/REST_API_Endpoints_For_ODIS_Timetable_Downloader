@@ -76,7 +76,7 @@ module Handlers =
                                         use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                                         use reader = new StreamReader(fs)                                       
     
-                                        let! content = reader.ReadToEndAsync() |> Async.AwaitTask
+                                        let! content = reader.ReadToEndAsync() |> Async.AwaitTask |> Async.map Ok
 
                                         return 
                                             content
@@ -85,6 +85,7 @@ module Handlers =
                                     with
                                     | ex -> return! Error (GetReadFailed (sprintf "Chyba při čtení ze souboru: %s" (string ex.Message))) 
                                 }
+                            |> AsyncResult.catch (fun ex -> GetReadFailed <| string ex.Message)
 
                         match! readJsonAsync () with
                         | Ok jsonString
@@ -134,7 +135,7 @@ module Handlers =
                 {
                     try
                         use reader = new StreamReader(ctx.Request.Body)
-                        let! body = reader.ReadToEndAsync() |> Async.AwaitTask
+                        let! body = reader.ReadToEndAsync() |> Async.AwaitTask 
     
                         let writeJsonAsync (jsonString: string) =
 
@@ -147,13 +148,14 @@ module Handlers =
                                     
                                     try
                                         use writer = new StreamWriter(fullPath, append = false)
-                                        do! writer.WriteAsync(jsonString) |> Async.AwaitTask
-                                        do! writer.FlushAsync() |> Async.AwaitTask
+                                        do! writer.WriteAsync jsonString |> Async.AwaitTask |> Async.map Ok
+                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok
     
                                         return ()
                                     with
                                     | ex -> return! Error (PutWriteFailed (sprintf "Chyba při zápisu do souboru: %s" (string ex.Message))) 
                                 }
+                            |> AsyncResult.catch (fun ex -> PutWriteFailed <| string ex.Message)
 
                         match! writeJsonAsync body with
                         | Ok ()
@@ -213,25 +215,24 @@ module Handlers =
                                         |> Option.ofNullEmpty
                                         |> Option.toResult (ServerError (sprintf "Chyba při čtení cesty k souboru: %s" path))
     
-                                    let! currentSizeKb = getCurrentSizeKb fullPath |> AsyncResult.ofResult
-    
+                                    let! currentSizeKb = getCurrentSizeKb fullPath    
                                     let estimatedTotalKb = currentSizeKb + (estimatedNewBytes / 1024L)
     
                                     match estimatedTotalKb >= int64 maxFileSizeKb with
                                     | true  ->
-                                            let! _ = truncateFile fullPath
-                                            ()
+                                            do! truncateFile fullPath                                          
                                     | false ->
-                                            ()
+                                            () 
     
                                     try
                                         use writer = new StreamWriter(fullPath, append = true)
-                                        do! writer.WriteLineAsync jsonString |> Async.AwaitTask
-                                        do! writer.FlushAsync() |> Async.AwaitTask
+                                        do! writer.WriteLineAsync jsonString |> Async.AwaitTask |> Async.map Ok
+                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok
                                         return ()
                                     with
                                     | ex -> return! Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" ex.Message))
                                 }
+                            |> AsyncResult.catch (fun ex -> PostWriteFailed <| string ex.Message)  
     
                         match! appendJsonAsync body with
                         | Ok () 
@@ -250,214 +251,3 @@ module Handlers =
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" ex.Message) next ctx
                 }
             |> Async.StartImmediateAsTask    
-
-// Old code for educational comparison
-
-// ************** GET ******************* 
-(*
-   let private getHandlerOld<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler =  // GIRAFFE
-
-       let getJsonStringAsync () path =
-
-           try
-               pyramidOfDoom
-                   {
-                       let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                       let! filepath = filepath, Error (sprintf "Chyba při čtení cesty k souboru: %s" path)
-       
-                       let fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.None)
-                       let reader = new StreamReader(fs)
-
-                       return Ok (reader, fs)
-                   }    
-                   
-               |> Result.map
-                   (fun (reader, fs) 
-                       ->
-                       async 
-                           {
-                               use reader = reader
-                               use fs = fs
-
-                               return! reader.ReadToEndAsync() |> Async.AwaitTask
-                           }
-               )
-           with
-           | ex -> Error (string ex.Message)
-
-       fun (next : HttpFunc) (ctx : HttpContext)
-           ->
-           async
-               {      
-                   try
-                       match getJsonStringAsync () path with
-                       | Ok jsonStringAsync
-                           ->
-                           let! jsonString = jsonStringAsync
-                  
-                           let jsonString = 
-                               jsonString 
-                               |> Option.ofNullEmpty 
-                               |> Option.defaultValue jsonEmpty 
-                       
-                           let responseJson = 
-                               createResponse >> encodeResponse >> Encode.toString indentation <| (jsonString, "Success")
-                                                                                                               
-                           ctx.Response.ContentType <- "application/json"
-                           ctx.Response.StatusCode <- 200
-                                                 
-                           return! text responseJson next ctx |> Async.AwaitTask // GIRAFFE
-
-                       | Error err 
-                           -> 
-                           let responseJson =
-                               createResponse >> encodeResponse >> Encode.toString indentation <| (jsonEmpty, err)                   
-
-                           ctx.Response.ContentType <- "application/json"
-                           ctx.Response.StatusCode <- 404
-
-                           return! text responseJson next ctx |> Async.AwaitTask  // GIRAFFE 
-                   with
-                   | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx  // GIRAFFE 
-               }
-           |> Async.StartImmediateAsTask
-
-   let linksHandler path = 
-       getHandler<ResponseGetLinks> path (fun (json, msg) -> { GetLinks = json; Message = msg }) encoderGetLinks
-   
-   let logEntriesHandler path = 
-       getHandler<ResponseGetLogEntries> path (fun (json, msg) -> { GetLogEntries = json; Message = msg }) encoderGetLogEntries
-       
-       
-   // ************** PUT ******************* 
-       
-   let internal putHandlerOld path : HttpHandler =   //GIRAFFE
-             
-       let prepareJsonAsyncWrite (jsonString: string) path = // it only prepares an asynchronous operation that writes the json string
-           
-           try  
-               pyramidOfDoom
-                   {
-                       let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                       let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
-                                                                  
-                       let writer = new StreamWriter(filepath, false)                
-                                                                                      
-                       return Ok writer
-                   }         
-                           
-               |> Result.map 
-                   (fun writer 
-                       ->
-                       async
-                           {
-                               use writer = writer
-                               do! writer.WriteAsync jsonString |> Async.AwaitTask
-
-                               return! writer.FlushAsync() |> Async.AwaitTask
-                           }
-                   )
-           with
-           | ex -> Error (string ex.Message)
-                      
-       fun (next: HttpFunc) (ctx: HttpContext)   //GIRAFFE
-           ->
-           async
-               {
-                   try  
-                       use reader = new StreamReader(ctx.Request.Body)
-                       let! body = reader.ReadToEndAsync() |> Async.AwaitTask 
-                     
-                       match prepareJsonAsyncWrite body path with
-                       | Ok asyncWriter     
-                           ->
-                           do! asyncWriter    
-                           return! sendResponse 200 "Successfully updated" String.Empty next ctx //GIRAFFE
-
-                       | Error err
-                           ->                              
-                           return! sendResponse 404 String.Empty err next ctx 
-                   with
-                   | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx 
-               }   
-           |> Async.StartImmediateAsTask 
-
-
-// ************** POST *******************     
-    
-   let internal postHandlerOld path : HttpHandler =
-
-       let checkFileSize () path =
-           
-           try
-               let fileInfo = FileInfo path
-                   in
-                   let sizeKb = 
-                       match fileInfo.Exists with
-                       | true  -> fileInfo.Length / 1024L  //abychom dostali hodnotu v KB
-                       | false -> 0L
-                       in
-                       match (<) sizeKb <| int64 maxFileSizeKb with
-                       | true  -> ()
-                       | false -> fileInfo.Delete()
-           
-               Ok sizeKb
-           
-           with
-           | ex -> Error (sprintf "Chyba při kontrole velikosti souboru: %s" ex.Message)      
-
-       let prepareJsonAsyncAppend (jsonString : string) path =
-
-           try  
-               pyramidOfDoom
-                   {
-                       let filepath = Path.GetFullPath path |> Option.ofNullEmpty 
-                       let! filepath = filepath, Error (sprintf "%s%s" "Chyba při čtení cesty k souboru " path)
-
-                       //pri append operation je soubor vytvoren, pokud neexistuje, proto nelze fInfodat.Exists a Error
-                                                                  
-                       let writer = new StreamWriter(filepath, true)                
-                                                                                      
-                       return Ok writer
-                   } 
-                   
-               |> Result.map 
-                   (fun writer 
-                       ->
-                       async
-                           {
-                               use writer = writer
-                               do! writer.WriteLineAsync jsonString |> Async.AwaitTask
-
-                               return! writer.FlushAsync() |> Async.AwaitTask
-                           }
-                   )            
-           with
-           | ex -> Error (string ex.Message)
-   
-   
-       fun (next : HttpFunc) (ctx : HttpContext) //GIRAFFE
-           ->
-           async
-               {
-                   try
-                       use reader = new StreamReader(ctx.Request.Body)
-                       let! body = reader.ReadToEndAsync() |> Async.AwaitTask
-
-                       let asyncWriter, sendResponse = 
-                           pyramidOfAsyncInferno
-                               {
-                                   let! _ = checkFileSize () path, (fun err -> sendResponse 400 String.Empty err next ctx)
-                                   let! asyncWriter = prepareJsonAsyncAppend body path, (fun err -> sendResponse 500 String.Empty err next ctx)
-                               
-                                   return asyncWriter, sendResponse 201 "Záznam úspěšně přidán" String.Empty next ctx 
-                               }
-
-                       do! asyncWriter   
-                       return! sendResponse
-
-                   with
-                   | ex -> return! sendResponse 500 String.Empty (sprintf "Chyba serveru: %s" ex.Message) next ctx 
-               }
-           |> Async.StartImmediateAsTask
-*)
