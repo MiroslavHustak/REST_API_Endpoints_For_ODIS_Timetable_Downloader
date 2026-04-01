@@ -76,7 +76,7 @@ module Handlers =
                                         use fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                                         use reader = new StreamReader(fs)                                       
     
-                                        let! content = reader.ReadToEndAsync() |> Async.AwaitTask |> Async.map Ok
+                                        let! content = reader.ReadToEndAsync() |> Async.AwaitTask |> Async.map Ok //See Excel -> DB for explanation
 
                                         return 
                                             content
@@ -148,8 +148,8 @@ module Handlers =
                                     
                                     try
                                         use writer = new StreamWriter(fullPath, append = false)
-                                        do! writer.WriteAsync jsonString |> Async.AwaitTask |> Async.map Ok
-                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok
+                                        do! writer.WriteAsync jsonString |> Async.AwaitTask |> Async.map Ok //See Excel -> DB for explanation
+                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok //See Excel -> DB for explanation
     
                                         return ()
                                     with
@@ -169,7 +169,7 @@ module Handlers =
     
                     with
                     | ex -> return! sendResponse 500 String.Empty (sprintf "Error: %s" ex.Message) next ctx 
-                }      
+                }                 
             |> Async.StartImmediateAsTask 
      
 // ************** POST *******************    
@@ -226,8 +226,8 @@ module Handlers =
     
                                     try
                                         use writer = new StreamWriter(fullPath, append = true)
-                                        do! writer.WriteLineAsync jsonString |> Async.AwaitTask |> Async.map Ok
-                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok
+                                        do! writer.WriteLineAsync jsonString |> Async.AwaitTask |> Async.map Ok //See Excel -> DB for explanation
+                                        do! writer.FlushAsync() |> Async.AwaitTask |> Async.map Ok //See Excel -> DB for explanation
                                         return ()
                                     with
                                     | ex -> return! Error (PostWriteFailed (sprintf "Chyba při zápisu do souboru: %s" ex.Message))
