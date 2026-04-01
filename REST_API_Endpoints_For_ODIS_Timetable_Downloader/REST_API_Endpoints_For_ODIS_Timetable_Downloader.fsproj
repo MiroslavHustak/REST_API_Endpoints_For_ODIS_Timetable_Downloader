@@ -6,9 +6,22 @@
 		<AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
 		<!-- Hosting model for ASP.NET Core -->
 		<OutputType>Exe</OutputType>
+		<Configurations>Debug;Release;Kubernetes</Configurations>
 		<!-- Specify that it's an executable -->
 	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>DEBUG;IIS</DefineConstants>
+	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DefineConstants>RELEASE;IIS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Kubernetes'">
+		<DefineConstants>RELEASE;IIS;KUBERNETES</DefineConstants>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<Content Include="Instructions.txt" />
 		<Content Include="Education.txt" />

@@ -23,19 +23,14 @@ open MyFsToolkit.InteractiveHelpers
 module Program =
 
     [<EntryPoint>]
-    let main args =
-
-        //let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  //WEB API
-
+    let main args =        
+        
+        #if KUBERNETES
         let apiKey = 
             System.Environment.GetEnvironmentVariable "API_KEY"
             |> Option.ofNullEmptySpace
             |> Option.defaultValue "fallback-dev-key"
         
-        //let pathCanopy = "CanopyResults/canopy_results.json"  //WEB API
-        //let pathJsonLinks = "jsonLinks/jsonLinks_results.json"  //WEB API
-        //let pathLogEntries = "logging/logEntries.json"  //WEB API
-
         // Kubernetes
         let basePath =
             Environment.GetEnvironmentVariable "APP_DATA_PATH"
@@ -47,6 +42,13 @@ module Program =
         let pathCanopy = Path.Combine(serviceRoot, "CanopyResults", "canopy_results.json") 
         let pathJsonLinks = Path.Combine(serviceRoot, "jsonLinks", "jsonLinks_results.json") 
         let pathLogEntries = Path.Combine(serviceRoot, "logging", "logEntries.json") 
+              
+        #else
+        let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  //WEB API
+        let pathCanopy = "CanopyResults/canopy_results.json"  //WEB API
+        let pathJsonLinks = "jsonLinks/jsonLinks_results.json"  //WEB API
+        let pathLogEntries = "logging/logEntries.json"  //WEB API
+        #endif
   
         let validateApiKey (next : HttpFunc) (ctx : HttpContext) =  //GIRAFFE
 
