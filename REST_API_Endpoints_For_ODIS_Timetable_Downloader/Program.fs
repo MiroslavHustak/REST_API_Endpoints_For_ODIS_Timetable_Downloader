@@ -41,12 +41,14 @@ module Program =
 
         let pathCanopy = Path.Combine(serviceRoot, "CanopyResults", "canopy_results.json") 
         let pathJsonLinks = Path.Combine(serviceRoot, "jsonLinks", "jsonLinks_results.json") 
+        let pathJsonLinksMDPO = Path.Combine(serviceRoot, "jsonLinksMDPO", "jsonLinks_resultsMDPO.json") 
         let pathLogEntries = Path.Combine(serviceRoot, "logging", "logEntries.json") 
               
         #else
         let apiKey = "test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3"  //WEB API
         let pathCanopy = "CanopyResults/canopy_results.json"  //WEB API
         let pathJsonLinks = "jsonLinks/jsonLinks_results.json"  //WEB API
+        let pathJsonLinksMDPO = "jsonLinksMDPO/jsonLinks_resultsMDPO.json"  //WEB API
         let pathLogEntries = "logging/logEntries.json"  //WEB API
         #endif
   
@@ -75,6 +77,8 @@ module Program =
                     put "/" (putHandler pathCanopy) //anebo /user atd.      
                     get "/jsonLinks" (linksHandler pathJsonLinks)  //anebo /user atd.  
                     put "/jsonLinks" (putHandler pathJsonLinks) //anebo /user atd.   tady /jsonLinks prijdou data, ktere se ulozi do jsonLinks/jsonLinks_results.json
+                    get "/jsonLinksMDPO" (linksHandler pathJsonLinksMDPO)  //anebo /user atd.  
+                    put "/jsonLinksMDPO" (putHandler pathJsonLinksMDPO) //anebo /user atd.   tady /jsonLinks prijdou data, ktere se ulozi do jsonLinks/jsonLinks_results.json
                     get "/logging" (logEntriesHandler pathLogEntries)  
                     post "/logging" (postHandler pathLogEntries) 
                 }
