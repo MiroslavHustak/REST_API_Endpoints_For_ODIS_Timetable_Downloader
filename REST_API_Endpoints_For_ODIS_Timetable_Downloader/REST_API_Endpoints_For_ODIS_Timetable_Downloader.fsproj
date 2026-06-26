@@ -21,9 +21,13 @@
 	<PropertyGroup Condition="'$(Configuration)'=='Kubernetes'">
 		<DefineConstants>RELEASE;IIS;KUBERNETES</DefineConstants>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
+		<Content Update="Secrets\secrets.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="Instructions.txt" />
+		<Compile Include="Secrets\ApiKeys.fs" />
 		<Content Include="Education.txt" />
 		<Compile Include="MyFsToolkit\CEBuilders.fs" />
 		<Compile Include="MyFsToolkit\ErrorHandlers.fs" />
@@ -36,7 +40,7 @@
 	<ItemGroup>
 	  <Content Include="Dockerfile" />
 	  <Content Include="DockerCommands" />
-	</ItemGroup>
+	</ItemGroup>	
 
 	<ItemGroup>
 		<PackageReference Include="FsToolkit.ErrorHandling" Version="5.1.0" />

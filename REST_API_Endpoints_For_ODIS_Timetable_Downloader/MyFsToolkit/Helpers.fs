@@ -1,5 +1,7 @@
 ﻿namespace MyFsToolkit
 
+open System.IO
+
 module InteractiveHelpers =
 
     let internal isInKubernetes = 
@@ -11,4 +13,3 @@ module InteractiveHelpers =
         System.Environment.GetEnvironmentVariable "DOTNET_RUNNING_IN_CONTAINER"
         |> Option.ofNullEmptySpace
         |> Option.isSome
-
