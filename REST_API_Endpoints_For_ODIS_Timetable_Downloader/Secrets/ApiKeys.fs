@@ -28,7 +28,7 @@ module Secrets =
             let json = System.IO.File.ReadAllText fullPath
             Decode.fromString decoder json
         with
-        | ex -> Error (sprintf "Failed to read secrets file: %s" ex.Message)
+        | ex -> Error (sprintf "Failed to read secrets file: %s" (string ex.Message))
 
     (*
     Do <ItemGroup>
