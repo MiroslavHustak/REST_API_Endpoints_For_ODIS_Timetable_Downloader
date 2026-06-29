@@ -56,7 +56,7 @@ module Handlers =
         
     // ************** GET ******************* 
 
-    let private getHandler<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler =
+    let private getHandler<'a> path createResponse (encodeResponse : 'a -> JsonValue) : HttpHandler = //like SELECT in SQL
 
         fun (next: HttpFunc) (ctx: HttpContext)
             ->
@@ -127,7 +127,7 @@ module Handlers =
         
     // ************** PUT ******************* 
 
-    let internal putHandler path : HttpHandler = //for links updating
+    let internal putHandler path : HttpHandler = //for links updating  //like INSERT INTO OR UPDATE in SQL
        
         fun (next: HttpFunc) (ctx: HttpContext) //GIRAFFE
             ->  
@@ -174,7 +174,7 @@ module Handlers =
      
 // ************** POST *******************    
  
-    let internal postHandler path : HttpHandler = //for log entries appending
+    let internal postHandler path : HttpHandler = //for log entries appending //like INSERT INTO in SQL
     
         let getCurrentSizeKb (fullPath: string) : Result<int64, PostError> =
             try
